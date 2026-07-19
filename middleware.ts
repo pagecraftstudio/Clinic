@@ -5,57 +5,64 @@ import { NextResponse, type NextRequest } from 'next/server'
 // /settings/users. Only login and password-reset are public.
 const PUBLIC_ROUTES = ['/login', '/reset-password']
 
-export async function middleware(request: NextRequest) {
+async function checkAuth(request: NextRequest): Promise<{
+  response: NextResponse
+  user: unknown | null
+}> {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Fail OPEN, not closed: if env vars are missing/misconfigured, log it
-  // and let the request through rather than 500ing every single page.
-  // Page-level auth checks (or the pages themselves) still guard access.
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error(
-      'middleware: missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY — skipping auth check for this request'
+      'middleware: missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY'
     )
-    return supabaseResponse
+    return { response: supabaseResponse, user: null }
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value)
+        )
+        supabaseResponse = NextResponse.next({ request })
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        )
+      },
+    },
+  })
 
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch (err) {
-    console.error('middleware: supabase.auth.getUser() threw, failing open:', err)
-    return supabaseResponse
-  }
+  const { data } = await supabase.auth.getUser()
+  return { response: supabaseResponse, user: data.user }
+}
 
+export async function middleware(request: NextRequest) {
   const isPublicRoute = PUBLIC_ROUTES.some((r) =>
     request.nextUrl.pathname.startsWith(r)
   )
 
-  // Not authenticated → redirect to login
+  // Whole auth check is wrapped: ANY unexpected throw here (bad creds,
+  // network error, library bug, wrong env value) fails OPEN — request
+  // passes through — instead of 500ing the entire site again like
+  // MIDDLEWARE_INVOCATION_FAILED did. We only ever actively block
+  // access (redirect to /login) on a clean, successful "no user" result.
+  let response: NextResponse
+  let user: unknown | null = null
+  try {
+    const result = await checkAuth(request)
+    response = result.response
+    user = result.user
+  } catch (err) {
+    console.error('middleware: auth check threw, failing open:', err)
+    return NextResponse.next({ request })
+  }
+
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -63,14 +70,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated + on auth pages → redirect to dashboard
   if (user && isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
-  return supabaseResponse
+  return response
 }
 
 export const config = {
