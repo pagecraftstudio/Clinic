@@ -44,6 +44,8 @@ function toDefaultValues(patient?: Patient): Partial<PatientFormValues> {
     insurance_company: patient.insurance_company ?? '',
     insurance_number: patient.insurance_number ?? '',
     insurance_expiry: patient.insurance_expiry ?? '',
+    nationality: patient.nationality ?? 'Egyptian',
+    referred_by: patient.referred_by ?? undefined,
     source: (patient.source as PatientFormValues['source']) ?? 'walk_in',
     emergency_contacts: [],
   }

@@ -94,7 +94,7 @@ function useAppointmentMutation<TArgs extends unknown[]>(
 ) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (...args: TArgs) => fn(...args),
+    mutationFn: (args: TArgs) => fn(...args),
     onSuccess: () => {
       if (invalidate) qc.invalidateQueries({ queryKey: ['appointments'] })
     },

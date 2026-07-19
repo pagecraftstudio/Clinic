@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { format } from 'date-fns'
 import type { Visit, VisitStatus, VisitType } from '@/types/emr'
 import { Badge } from '@/components/ui/badge'
@@ -81,8 +80,7 @@ export function VisitsTable({ visits, count, page, perPage }: VisitsTableProps) 
           </TableHeader>
           <TableBody>
             {visits.map((visit) => (
-              <TableRow key={visit.id} className="cursor-pointer group" asChild>
-                <Link href={`/emr/${visit.id}`} className="contents">
+              <TableRow key={visit.id} className="cursor-pointer group" onClick={() => window.location.href = `/emr/${visit.id}`}>
                   {/* Patient */}
                   <TableCell>
                     <div className="flex items-center gap-2.5">
@@ -129,7 +127,6 @@ export function VisitsTable({ visits, count, page, perPage }: VisitsTableProps) 
                       {visit.status}
                     </Badge>
                   </TableCell>
-                </Link>
               </TableRow>
             ))}
           </TableBody>

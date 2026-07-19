@@ -60,7 +60,7 @@ export function NewVisitButton() {
   function onSubmit(values: CreateVisitSchema) {
     startTransition(async () => {
       try {
-        const visit = await createVisit(values)
+        const visit = await createVisit(values as any)
         toast.success('Visit created')
         setOpen(false)
         form.reset()

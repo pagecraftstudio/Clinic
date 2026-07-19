@@ -127,7 +127,7 @@ function AppointmentRow({ appt }: { appt: Appointment }) {
           />
           <button
             onClick={async () => {
-              await cancelMut.mutateAsync([appt.id, { cancellation_reason: reason || 'Cancelled by reception' }] as Parameters<typeof cancelMut.mutate>)
+              await cancelMut.mutateAsync([appt.id, { cancellation_reason: reason || 'Cancelled by reception' }] as any)
               setCancelling(false)
               setReason('')
             }}

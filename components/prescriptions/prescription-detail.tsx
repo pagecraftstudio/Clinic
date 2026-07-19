@@ -32,11 +32,11 @@ export function PrescriptionDetail({ prescription }: PrescriptionDetailProps) {
               <div className="col-span-2"><span className="font-medium">Diagnosis:</span> {prescription.diagnosis}</div>
             )}
           </div>
-          {prescription.items && prescription.items.length > 0 && (
+          {prescription.prescription_items && prescription.prescription_items.length > 0 && (
             <div>
               <h4 className="font-medium mb-2">Medications</h4>
               <div className="space-y-2">
-                {prescription.items.map((item) => (
+                {prescription.prescription_items.map((item) => (
                   <div key={item.id} className="rounded border p-3 text-sm">
                     <div className="font-medium">{item.medicine_name} {item.strength}</div>
                     <div className="text-muted-foreground">{item.dosage} — {item.frequency} — {item.duration}</div>

@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     .from('profiles')
     .select('display_name, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; display_name: string } | null, error: unknown }
 
   const { messages } = await req.json() as {
     messages: Array<{ role: string; content: string }>

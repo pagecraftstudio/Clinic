@@ -356,7 +356,7 @@ function TimeField({ label, name, register }: { label: string; name: string; reg
   return (
     <div>
       <label className="block text-xs text-[var(--text-muted)] mb-1">{label}</label>
-      {/* @ts-expect-error dynamic name */}
+      {/* @ts-ignore dynamic name */}
       <input {...register(name)} type="time" className="w-full text-sm rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]" />
     </div>
   )

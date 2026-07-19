@@ -12,7 +12,7 @@ export default async function SettingsLayout({ children }: { children: ReactNode
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string } | null, error: unknown }
 
   const isAdmin = profile?.role === 'owner' || profile?.role === 'admin'
   if (!isAdmin) redirect('/')
