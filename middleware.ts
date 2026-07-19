@@ -1,3 +1,15 @@
+// WORKAROUND for a known Next.js 15.0.x bug: `next/server` bundles
+// ua-parser-js internally (for its userAgent() helper), and ua-parser-js
+// references `__dirname`, which doesn't exist on Vercel's Edge runtime.
+// That's what was actually causing every request to this middleware to
+// 500 with "ReferenceError: __dirname is not defined" — nothing to do
+// with Supabase. Defining it as a no-op global before next/server is
+// imported avoids the crash. See: github.com/vercel/next.js/issues/53968
+// Longer-term fix: upgrade Next.js past 15.0.7, where this is resolved.
+if (typeof globalThis.__dirname === 'undefined') {
+  ;(globalThis as any).__dirname = '/'
+}
+
 import { NextResponse, type NextRequest } from 'next/server'
 
 // No public self-signup: staff accounts are created by an admin via
