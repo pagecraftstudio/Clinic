@@ -35,14 +35,14 @@ export function CardSkeleton() {
   )
 }
 
-export function LoadingSkeleton() {
+export function LoadingSkeleton({ rows = 5, cols = 3 }: { rows?: number; cols?: number }) {
   return (
     <div className="p-6 space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="animate-pulse flex gap-4">
-          <div className="h-4 bg-muted rounded w-1/4" />
-          <div className="h-4 bg-muted rounded w-1/3" />
-          <div className="h-4 bg-muted rounded w-1/5" />
+          {Array.from({ length: cols }).map((_, c) => (
+            <div key={c} className={cn('h-4 bg-muted rounded', c === 0 ? 'w-1/4' : c === 1 ? 'w-1/3' : 'w-1/5')} />
+          ))}
         </div>
       ))}
     </div>
