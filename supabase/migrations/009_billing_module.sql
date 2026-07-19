@@ -37,11 +37,13 @@ CREATE POLICY "invoices_read" ON invoices
     current_user_role() IN ('owner','admin','doctor','receptionist','cashier','accountant')
   );
 
+DROP POLICY IF EXISTS "invoices_insert" ON invoices;
 CREATE POLICY "invoices_insert" ON invoices
   FOR INSERT WITH CHECK (
     current_user_role() IN ('owner','admin','cashier','receptionist')
   );
 
+DROP POLICY IF EXISTS "invoices_update" ON invoices;
 CREATE POLICY "invoices_update" ON invoices
   FOR UPDATE USING (
     current_user_role() IN ('owner','admin','cashier','accountant')
@@ -73,6 +75,7 @@ CREATE POLICY "payments_read" ON payments
     current_user_role() IN ('owner','admin','cashier','accountant','receptionist')
   );
 
+DROP POLICY IF EXISTS "payments_insert" ON payments;
 CREATE POLICY "payments_insert" ON payments
   FOR INSERT WITH CHECK (
     current_user_role() IN ('owner','admin','cashier')
@@ -84,6 +87,7 @@ CREATE POLICY "refunds_read" ON refunds
     current_user_role() IN ('owner','admin','cashier','accountant')
   );
 
+DROP POLICY IF EXISTS "refunds_insert" ON refunds;
 CREATE POLICY "refunds_insert" ON refunds
   FOR INSERT WITH CHECK (
     current_user_role() IN ('owner','admin','cashier')

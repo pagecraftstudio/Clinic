@@ -3,22 +3,27 @@
 -- ============================================================
 
 -- ── Visits ──────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS visits (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id      UUID NOT NULL REFERENCES patients(id) ON DELETE RESTRICT,
-  doctor_id       UUID NOT NULL REFERENCES profiles(id) ON DELETE RESTRICT,
-  appointment_id  UUID REFERENCES appointments(id) ON DELETE SET NULL,
-  visit_date      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  visit_type      TEXT NOT NULL DEFAULT 'outpatient'
-                    CHECK (visit_type IN ('outpatient','follow_up','emergency','teleconsult')),
-  chief_complaint TEXT,
-  status          TEXT NOT NULL DEFAULT 'open'
-                    CHECK (status IN ('open','completed','cancelled')),
-  -- soft delete
-  deleted_at      TIMESTAMPTZ,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+-- `visits` already exists from 001_initial_schema.sql (with doctor_id
+-- correctly referencing doctors(id), not profiles(id)). Add the columns
+-- this module needs instead of re-declaring the table.
+ALTER TABLE visits ADD COLUMN IF NOT EXISTS visit_type TEXT NOT NULL DEFAULT 'outpatient';
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visits_visit_type_check') THEN
+    ALTER TABLE visits ADD CONSTRAINT visits_visit_type_check
+      CHECK (visit_type IN ('outpatient','follow_up','emergency','teleconsult'));
+  END IF;
+END $$;
+
+ALTER TABLE visits ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'open';
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'visits_status_check') THEN
+    ALTER TABLE visits ADD CONSTRAINT visits_status_check
+      CHECK (status IN ('open','completed','cancelled'));
+  END IF;
+END $$;
+
+-- soft delete
+ALTER TABLE visits ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 
 -- ── Vitals ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS vitals (
@@ -89,6 +94,9 @@ RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$;
 
+-- 001_initial_schema.sql already creates trg_visits_updated_at via its
+-- generic per-table trigger loop; drop it first so this one doesn't collide.
+DROP TRIGGER IF EXISTS trg_visits_updated_at ON visits;
 CREATE TRIGGER trg_visits_updated_at
   BEFORE UPDATE ON visits
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -127,7 +135,9 @@ CREATE POLICY "visits_insert" ON visits FOR INSERT
 CREATE POLICY "visits_update" ON visits FOR UPDATE
   USING (
     current_user_role() IN ('owner','admin')
-    OR (current_user_role() = 'doctor' AND doctor_id = auth.uid())
+    OR (current_user_role() = 'doctor' AND doctor_id IN (
+      SELECT id FROM doctors WHERE profile_id = auth.uid()
+    ))
   );
 
 -- vitals: read same as visits

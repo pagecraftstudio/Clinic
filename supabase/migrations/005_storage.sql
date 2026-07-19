@@ -28,12 +28,12 @@ CREATE POLICY "avatars_auth_upload" ON storage.objects
 
 CREATE POLICY "avatars_own_update" ON storage.objects
   FOR UPDATE USING (
-    bucket_id = 'avatars' AND owner = auth.uid()::TEXT
+    bucket_id = 'avatars' AND owner = auth.uid()
   );
 
 CREATE POLICY "avatars_own_delete" ON storage.objects
   FOR DELETE USING (
-    bucket_id = 'avatars' AND owner = auth.uid()::TEXT
+    bucket_id = 'avatars' AND owner = auth.uid()
   );
 
 -- Clinical buckets: only clinical staff

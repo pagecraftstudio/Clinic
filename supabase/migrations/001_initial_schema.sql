@@ -12,71 +12,103 @@ CREATE EXTENSION IF NOT EXISTS "unaccent";        -- accent-insensitive search
 -- ENUMS
 -- ============================================================
 
-CREATE TYPE user_role AS ENUM (
-  'owner', 'admin', 'doctor', 'receptionist',
-  'nurse', 'cashier', 'accountant', 'lab_technician',
-  'radiology_technician', 'pharmacist', 'marketing', 'patient'
-);
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM (
+    'owner', 'admin', 'doctor', 'receptionist',
+    'nurse', 'cashier', 'accountant', 'lab_technician',
+    'radiology_technician', 'pharmacist', 'marketing', 'patient'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE gender AS ENUM ('male', 'female', 'other');
+DO $$ BEGIN
+  CREATE TYPE gender AS ENUM ('male', 'female', 'other');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE blood_group AS ENUM (
-  'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'
-);
+DO $$ BEGIN
+  CREATE TYPE blood_group AS ENUM (
+    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE appointment_status AS ENUM (
-  'scheduled', 'confirmed', 'checked_in', 'in_progress',
-  'completed', 'cancelled', 'no_show', 'rescheduled'
-);
+DO $$ BEGIN
+  CREATE TYPE appointment_status AS ENUM (
+    'scheduled', 'confirmed', 'checked_in', 'in_progress',
+    'completed', 'cancelled', 'no_show', 'rescheduled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE appointment_type AS ENUM (
-  'in_person', 'online', 'follow_up', 'urgent', 'routine'
-);
+DO $$ BEGIN
+  CREATE TYPE appointment_type AS ENUM (
+    'in_person', 'online', 'follow_up', 'urgent', 'routine'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE payment_method AS ENUM (
-  'cash', 'card', 'bank_transfer', 'vodafone_cash', 'fawry', 'insurance'
-);
+DO $$ BEGIN
+  CREATE TYPE payment_method AS ENUM (
+    'cash', 'card', 'bank_transfer', 'vodafone_cash', 'fawry', 'insurance'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE payment_status AS ENUM (
-  'pending', 'partial', 'paid', 'refunded', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE payment_status AS ENUM (
+    'pending', 'partial', 'paid', 'refunded', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE invoice_status AS ENUM (
-  'draft', 'issued', 'partial', 'paid', 'refunded', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE invoice_status AS ENUM (
+    'draft', 'issued', 'partial', 'paid', 'refunded', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE lab_status AS ENUM (
-  'requested', 'sample_collected', 'processing', 'completed', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE lab_status AS ENUM (
+    'requested', 'sample_collected', 'processing', 'completed', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE radiology_status AS ENUM (
-  'requested', 'scheduled', 'completed', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE radiology_status AS ENUM (
+    'requested', 'scheduled', 'completed', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE inventory_category AS ENUM (
-  'medicine', 'supply', 'equipment', 'consumable'
-);
+DO $$ BEGIN
+  CREATE TYPE inventory_category AS ENUM (
+    'medicine', 'supply', 'equipment', 'consumable'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE purchase_order_status AS ENUM (
-  'draft', 'sent', 'partial', 'received', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE purchase_order_status AS ENUM (
+    'draft', 'sent', 'partial', 'received', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE notification_channel AS ENUM (
-  'email', 'sms', 'whatsapp', 'push', 'in_app'
-);
+DO $$ BEGIN
+  CREATE TYPE notification_channel AS ENUM (
+    'email', 'sms', 'whatsapp', 'push', 'in_app'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE notification_status AS ENUM (
-  'pending', 'sent', 'delivered', 'failed', 'read'
-);
+DO $$ BEGIN
+  CREATE TYPE notification_status AS ENUM (
+    'pending', 'sent', 'delivered', 'failed', 'read'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE leave_status AS ENUM (
-  'pending', 'approved', 'rejected', 'cancelled'
-);
+DO $$ BEGIN
+  CREATE TYPE leave_status AS ENUM (
+    'pending', 'approved', 'rejected', 'cancelled'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TYPE document_type AS ENUM (
-  'national_id', 'passport', 'insurance_card',
-  'medical_report', 'lab_result', 'radiology', 'prescription', 'other'
-);
+DO $$ BEGIN
+  CREATE TYPE document_type AS ENUM (
+    'national_id', 'passport', 'insurance_card',
+    'medical_report', 'lab_result', 'radiology', 'prescription', 'other'
+  );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ============================================================
 -- CORE TABLES
@@ -292,7 +324,7 @@ CREATE TABLE appointments (
   doctor_id         UUID NOT NULL REFERENCES doctors(id) ON DELETE RESTRICT,
   scheduled_at      TIMESTAMPTZ NOT NULL,
   duration          INT NOT NULL DEFAULT 30,         -- minutes
-  end_at            TIMESTAMPTZ GENERATED ALWAYS AS (scheduled_at + (duration || ' minutes')::INTERVAL) STORED,
+  end_at            TIMESTAMPTZ,       -- maintained by trg_appointments_set_end_at below
   type              appointment_type NOT NULL DEFAULT 'in_person',
   status            appointment_status NOT NULL DEFAULT 'scheduled',
   chief_complaint   TEXT,
@@ -365,30 +397,10 @@ CREATE TABLE visit_diagnoses (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Vitals
-CREATE TABLE vitals (
-  id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  visit_id              UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
-  patient_id            UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
-  recorded_by           UUID REFERENCES profiles(id),
-  recorded_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  -- Measurements
-  weight_kg             NUMERIC(5,2),
-  height_cm             NUMERIC(5,2),
-  bmi                   NUMERIC(4,2) GENERATED ALWAYS AS (
-                          CASE WHEN height_cm > 0 THEN
-                            ROUND((weight_kg / ((height_cm/100)^2))::NUMERIC, 2)
-                          ELSE NULL END
-                        ) STORED,
-  temperature_c         NUMERIC(4,2),
-  blood_pressure_sys    INT,
-  blood_pressure_dia    INT,
-  pulse_rate            INT,
-  respiratory_rate      INT,
-  oxygen_saturation     NUMERIC(5,2),
-  blood_glucose         NUMERIC(6,2),
-  notes                 TEXT
-);
+-- Vitals: created in 008_emr_module.sql instead (the app's actual column
+-- names — systolic_bp/diastolic_bp/pulse_bpm/spo2_pct/blood_glucose_mgdl —
+-- live there; this file used to duplicate the table with different, unused
+-- column names, which shadowed the real one and broke migration 008).
 
 -- ============================================================
 -- PRESCRIPTIONS
@@ -941,6 +953,21 @@ $$;
 
 CREATE TRIGGER trg_patients_number         BEFORE INSERT ON patients         FOR EACH ROW EXECUTE FUNCTION generate_patient_number();
 CREATE TRIGGER trg_appointments_number     BEFORE INSERT ON appointments     FOR EACH ROW EXECUTE FUNCTION generate_appointment_number();
+
+-- end_at can't be a GENERATED column: timestamptz + interval arithmetic is
+-- STABLE (timezone-dependent), not IMMUTABLE, which Postgres rejects for
+-- generated columns. Maintain it with a trigger instead.
+CREATE OR REPLACE FUNCTION set_appointment_end_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.end_at := NEW.scheduled_at + (NEW.duration || ' minutes')::INTERVAL;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_appointments_set_end_at
+  BEFORE INSERT OR UPDATE OF scheduled_at, duration ON appointments
+  FOR EACH ROW EXECUTE FUNCTION set_appointment_end_at();
 CREATE TRIGGER trg_prescriptions_number    BEFORE INSERT ON prescriptions    FOR EACH ROW EXECUTE FUNCTION generate_prescription_number();
 CREATE TRIGGER trg_invoices_number         BEFORE INSERT ON invoices         FOR EACH ROW EXECUTE FUNCTION generate_invoice_number();
 CREATE TRIGGER trg_payments_number         BEFORE INSERT ON payments         FOR EACH ROW EXECUTE FUNCTION generate_payment_number();

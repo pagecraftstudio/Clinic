@@ -86,7 +86,6 @@ ALTER TABLE appointments              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE waiting_list              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visits                    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visit_diagnoses           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vitals                    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prescriptions             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prescription_items        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices                  ENABLE ROW LEVEL SECURITY;
@@ -228,7 +227,7 @@ CREATE POLICY "doctor_schedules_select" ON doctor_schedules
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "doctor_schedules_modify_admin" ON doctor_schedules
-  FOR ALL USING (is_admin() OR profile_id IN (SELECT profile_id FROM doctors WHERE id = doctor_id));
+  FOR ALL USING (is_admin() OR doctor_id IN (SELECT id FROM doctors WHERE profile_id = auth.uid()));
 
 CREATE POLICY "doctor_leaves_select" ON doctor_leaves
   FOR SELECT USING (is_clinical_staff() OR
@@ -307,22 +306,9 @@ CREATE POLICY "diagnoses_select" ON visit_diagnoses
 CREATE POLICY "diagnoses_modify" ON visit_diagnoses
   FOR ALL USING (is_clinical_staff());
 
--- Vitals
-CREATE POLICY "vitals_select_clinical" ON vitals
-  FOR SELECT USING (is_clinical_staff());
-
-CREATE POLICY "vitals_select_patient" ON vitals
-  FOR SELECT USING (patient_id = my_patient_id());
-
-CREATE POLICY "vitals_insert_clinical" ON vitals
-  FOR INSERT WITH CHECK (
-    has_any_role(ARRAY['owner','admin','doctor','nurse']::user_role[])
-  );
-
-CREATE POLICY "vitals_update_clinical" ON vitals
-  FOR UPDATE USING (
-    has_any_role(ARRAY['owner','admin','doctor','nurse']::user_role[])
-  );
+-- Vitals: table + RLS policies now live entirely in 008_emr_module.sql
+-- (this file used to declare policies against a `vitals` table that doesn't
+-- exist yet at this point in the migration order).
 
 -- ============================================================
 -- PRESCRIPTIONS
