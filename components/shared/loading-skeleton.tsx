@@ -34,3 +34,17 @@ export function CardSkeleton() {
     </div>
   )
 }
+
+export function LoadingSkeleton() {
+  return (
+    <div className="p-6 space-y-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="animate-pulse flex gap-4">
+          <div className="h-4 bg-muted rounded w-1/4" />
+          <div className="h-4 bg-muted rounded w-1/3" />
+          <div className="h-4 bg-muted rounded w-1/5" />
+        </div>
+      ))}
+    </div>
+  )
+}
