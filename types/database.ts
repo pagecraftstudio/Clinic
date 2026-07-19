@@ -230,5 +230,6 @@ export interface Database {
       lab_status: LabStatus
       radiology_status: RadiologyStatus
     }
+    CompositeTypes: Record<string, never>
   }
 }
