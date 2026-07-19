@@ -1,5 +1,10 @@
 'use client'
 
+// Skip static prerendering: this page needs Supabase env vars at request
+// time. Prerendering it at build time is what caused the original
+// "Missing Supabase URL/key" build failure.
+export const dynamic = 'force-dynamic'
+
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
