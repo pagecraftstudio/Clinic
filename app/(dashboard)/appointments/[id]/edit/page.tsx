@@ -5,14 +5,15 @@ import { ArrowLeft, CalendarClock } from 'lucide-react'
 import { getAppointmentById } from '@/features/appointments/queries'
 import { AppointmentForm } from '@/components/appointments/appointment-form'
 
-interface Props { params: { id: string } }
+interface Props { params: Promise<{ id: string }> }
 
 export const metadata: Metadata = { title: 'Edit Appointment | Clinic CMS' }
 
 export default async function EditAppointmentPage({ params }: Props) {
+  const { id } = await params
   let appointment
   try {
-    appointment = await getAppointmentById(params.id)
+    appointment = await getAppointmentById(id)
   } catch {
     notFound()
   }
@@ -21,7 +22,7 @@ export default async function EditAppointmentPage({ params }: Props) {
     <div className="max-w-2xl mx-auto px-6 py-8">
       <div className="mb-8">
         <Link
-          href={`/appointments/${params.id}`}
+          href={`/appointments/${id}`}
           className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] mb-4 transition-colors"
         >
           <ArrowLeft className="size-3.5" /> Back

@@ -3,11 +3,12 @@ import { notFound } from 'next/navigation'
 import { getAppointmentById } from '@/features/appointments/queries'
 import { AppointmentDetailClient } from './appointment-detail-client'
 
-interface Props { params: { id: string } }
+interface Props { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
   try {
-    const apt = await getAppointmentById(params.id)
+    const apt = await getAppointmentById(id)
     return { title: `${apt.appointment_number} | Appointments` }
   } catch {
     return { title: 'Appointment | Clinic CMS' }
@@ -15,9 +16,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AppointmentDetailPage({ params }: Props) {
+  const { id } = await params
   let appointment
   try {
-    appointment = await getAppointmentById(params.id)
+    appointment = await getAppointmentById(id)
   } catch {
     notFound()
   }
