@@ -97,7 +97,15 @@ export function PrescriptionsClient() {
       key: 'status',
       header: 'Status',
       render: (row) => (
-        <PrescriptionStatusBadge isDispensed={row.is_dispensed} validUntil={row.valid_until} />
+        <PrescriptionStatusBadge
+          status={
+            row.is_dispensed
+              ? 'dispensed'
+              : row.valid_until && row.valid_until < new Date().toISOString().split('T')[0]
+                ? 'expired'
+                : 'active'
+          }
+        />
       ),
     },
   ]

@@ -23,7 +23,7 @@ export default function LoginPage() {
     startTransition(async () => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); return }
-      router.push('/dashboard')
+      router.push('/')
       router.refresh()
     })
   }
