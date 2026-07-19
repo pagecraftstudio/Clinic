@@ -84,7 +84,7 @@ export function EditPrescriptionClient({ prescription, patients, doctors }: Prop
           doctors={doctors}
           defaultValues={defaultValues}
           onSubmit={handleSubmit}
-          isLoading={updatePrescription.isPending}
+          isSubmitting={updatePrescription.isPending}
         />
       </div>
     </div>

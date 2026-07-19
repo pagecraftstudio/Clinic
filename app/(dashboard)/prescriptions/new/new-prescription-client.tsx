@@ -59,7 +59,7 @@ export function NewPrescriptionClient({ patients, doctors }: Props) {
           patients={patients}
           doctors={doctors}
           onSubmit={handleSubmit}
-          isLoading={createPrescription.isPending}
+          isSubmitting={createPrescription.isPending}
         />
       </div>
     </div>
