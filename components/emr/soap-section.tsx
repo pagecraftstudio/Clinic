@@ -4,8 +4,8 @@ import { useTransition, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { upsertSOAPNote, signSOAPNote } from '@/actions/emr.actions'
-import { soapSchema, type SOAPSchema } from '@/types/emr.schemas'
+import { upsertSOAPNote, signSOAPNote } from '@/features/emr/actions'
+import { soapSchema, type SOAPSchema } from '@/lib/validations/emr'
 import type { Visit, ICD10Code } from '@/types/emr'
 import {
   Form,

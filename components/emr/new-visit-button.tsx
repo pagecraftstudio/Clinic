@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { createVisit } from '@/actions/emr.actions'
-import { createVisitSchema, type CreateVisitSchema } from '@/types/emr.schemas'
+import { createVisit } from '@/features/emr/actions'
+import { createVisitSchema, type CreateVisitSchema } from '@/lib/validations/emr'
 import {
   Dialog,
   DialogContent,

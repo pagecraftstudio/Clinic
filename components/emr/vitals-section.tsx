@@ -4,8 +4,8 @@ import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { upsertVitals } from '@/actions/emr.actions'
-import { vitalsSchema, type VitalsSchema } from '@/types/emr.schemas'
+import { upsertVitals } from '@/features/emr/actions'
+import { vitalsSchema, type VitalsSchema } from '@/lib/validations/emr'
 import type { Visit } from '@/types/emr'
 import {
   Form,
