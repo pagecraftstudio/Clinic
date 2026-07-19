@@ -5,14 +5,14 @@ import { AppointmentForm } from '@/components/appointments/appointment-form'
 
 export const metadata: Metadata = { title: 'New Appointment | Clinic CMS' }
 
-export default function NewAppointmentPage({
+export default async function NewAppointmentPage({
   searchParams,
 }: {
-  searchParams: { patient_id?: string }
+  searchParams: Promise<{ patient_id?: string }>
 }) {
+  const { patient_id } = await searchParams
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
-      {/* Header */}
       <div className="mb-8">
         <Link
           href="/appointments"
@@ -32,9 +32,8 @@ export default function NewAppointmentPage({
         </div>
       </div>
 
-      {/* Card */}
       <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-6">
-        <AppointmentForm defaultPatientId={searchParams.patient_id} />
+        <AppointmentForm defaultPatientId={patient_id} />
       </div>
     </div>
   )
