@@ -1,9 +1,8 @@
 import { notFound } from 'next/navigation'
-import { getVisitById } from '@/actions/emr.actions'
-import { VisitHeader } from '../_components/VisitHeader'
-import { VitalsSection } from '../_components/VitalsSection'
-import { SOAPSection } from '../_components/SOAPSection'
-import { VisitSidebar } from '../_components/VisitSidebar'
+import { getVisitById } from '@/features/emr/actions'
+import { VisitHeader, VisitSidebar } from '@/components/emr/visit-header'
+import { VitalsSection } from '@/components/emr/vitals-section'
+import { SOAPSection } from '@/components/emr/soap-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 
@@ -26,12 +25,8 @@ export default async function VisitDetailPage({ params }: PageProps) {
 
   return (
     <div className="flex flex-col gap-0 h-full">
-      {/* Top bar */}
       <VisitHeader visit={visit} />
-
-      {/* Layout: main + sidebar */}
       <div className="flex flex-1 gap-0 overflow-hidden">
-        {/* Main */}
         <div className="flex-1 overflow-y-auto p-6">
           <Tabs defaultValue="soap">
             <div className="flex items-center justify-between mb-4">
@@ -46,18 +41,14 @@ export default async function VisitDetailPage({ params }: PageProps) {
                 </Badge>
               )}
             </div>
-
             <TabsContent value="soap" className="mt-0">
               <SOAPSection visit={visit} readOnly={isSigned} />
             </TabsContent>
-
             <TabsContent value="vitals" className="mt-0">
               <VitalsSection visit={visit} />
             </TabsContent>
           </Tabs>
         </div>
-
-        {/* Sidebar */}
         <VisitSidebar visit={visit} />
       </div>
     </div>

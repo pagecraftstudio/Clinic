@@ -1,8 +1,8 @@
 import { Suspense } from 'react'
-import { getVisits } from '@/actions/emr.actions'
-import { VisitsTable } from './_components/VisitsTable'
-import { NewVisitButton } from './_components/NewVisitButton'
-import { VisitFiltersBar } from './_components/VisitFiltersBar'
+import { getVisits } from '@/features/emr/actions'
+import { VisitsTable } from '@/components/emr/visits-table'
+import { NewVisitButton } from '@/components/emr/new-visit-button'
+import { VisitFiltersBar } from '@/components/emr/visit-filters-bar'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { VisitFilters } from '@/types/emr'
 
@@ -37,7 +37,6 @@ export default async function EMRPage({ searchParams }: PageProps) {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Visits</h1>
@@ -47,11 +46,7 @@ export default async function EMRPage({ searchParams }: PageProps) {
         </div>
         <NewVisitButton />
       </div>
-
-      {/* Filters */}
       <VisitFiltersBar defaultValues={filters} />
-
-      {/* Table */}
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-xl" />}>
         <VisitsTable visits={visits} count={count} page={page} perPage={20} />
       </Suspense>
