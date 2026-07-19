@@ -1,82 +1,56 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // No public self-signup: staff accounts are created by an admin via
 // /settings/users. Only login and password-reset are public.
 const PUBLIC_ROUTES = ['/login', '/reset-password']
 
-async function checkAuth(request: NextRequest): Promise<{
-  response: NextResponse
-  user: unknown | null
-}> {
-  let supabaseResponse = NextResponse.next({ request })
+// IMPORTANT: this file runs on Vercel's Edge Runtime, which does not
+// support Node.js APIs. @supabase/supabase-js (pulled in via
+// @supabase/ssr's createServerClient) touches `process.version`
+// internally, which throws on Edge as soon as the module loads —
+// before any of our code runs, so no try/catch can catch it. That
+// was the actual cause of the recurring
+// "500: MIDDLEWARE_INVOCATION_FAILED" error. Do NOT import
+// @supabase/ssr or @supabase/supabase-js in this file.
+//
+// Instead: do a cheap, Edge-safe check for the presence of a Supabase
+// auth cookie to redirect obviously-logged-out users early. The real,
+// authoritative session check (which validates the token, not just
+// its presence) already happens in app/(dashboard)/layout.tsx, which
+// runs on the Node.js runtime where supabase-js works normally.
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error(
-      'middleware: missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY'
-    )
-    return { response: supabaseResponse, user: null }
-  }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
-      },
-      setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        )
-        supabaseResponse = NextResponse.next({ request })
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        )
-      },
-    },
-  })
-
-  const { data } = await supabase.auth.getUser()
-  return { response: supabaseResponse, user: data.user }
+function hasSupabaseSessionCookie(request: NextRequest): boolean {
+  return request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token'))
 }
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const isPublicRoute = PUBLIC_ROUTES.some((r) =>
     request.nextUrl.pathname.startsWith(r)
   )
+  const hasSession = hasSupabaseSessionCookie(request)
 
-  // Whole auth check is wrapped: ANY unexpected throw here (bad creds,
-  // network error, library bug, wrong env value) fails OPEN — request
-  // passes through — instead of 500ing the entire site again like
-  // MIDDLEWARE_INVOCATION_FAILED did. We only ever actively block
-  // access (redirect to /login) on a clean, successful "no user" result.
-  let response: NextResponse
-  let user: unknown | null = null
-  try {
-    const result = await checkAuth(request)
-    response = result.response
-    user = result.user
-  } catch (err) {
-    console.error('middleware: auth check threw, failing open:', err)
-    return NextResponse.next({ request })
-  }
-
-  if (!user && !isPublicRoute) {
+  // No session cookie at all, and hitting a protected route → bounce to
+  // login early. (If the cookie exists but the token is invalid/expired,
+  // app/(dashboard)/layout.tsx catches that and redirects too.)
+  if (!hasSession && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
-  if (user && isPublicRoute) {
+  // Has a session cookie and is on a public auth page → send to dashboard.
+  // (Best-effort UX nicety; if the cookie turns out to be stale, the
+  // dashboard layout will bounce back to /login anyway.)
+  if (hasSession && isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
-  return response
+  return NextResponse.next()
 }
 
 export const config = {
