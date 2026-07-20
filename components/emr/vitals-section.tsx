@@ -43,15 +43,14 @@ const VITAL_FIELDS: {
   max?: number
   step?: string
 }[] = [
-  { key: 'weight_kg',          label: 'Weight',           unit: 'kg',       placeholder: '70',    step: '0.1' },
-  { key: 'height_cm',          label: 'Height',           unit: 'cm',       placeholder: '170',   step: '0.5' },
-  { key: 'temperature_c',      label: 'Temperature',      unit: '°C',       placeholder: '37.0',  step: '0.1', min: 30, max: 45 },
-  { key: 'systolic_bp',        label: 'Systolic BP',      unit: 'mmHg',     placeholder: '120',   min: 50,  max: 300 },
-  { key: 'diastolic_bp',       label: 'Diastolic BP',     unit: 'mmHg',     placeholder: '80',    min: 30,  max: 200 },
-  { key: 'pulse_bpm',          label: 'Pulse',            unit: 'bpm',      placeholder: '72',    min: 20,  max: 300 },
-  { key: 'spo2_pct',           label: 'SpO₂',             unit: '%',        placeholder: '98',    min: 50,  max: 100 },
+  { key: 'weight',          label: 'Weight',           unit: 'kg',       placeholder: '70',    step: '0.1' },
+  { key: 'height',          label: 'Height',           unit: 'cm',       placeholder: '170',   step: '0.5' },
+  { key: 'temperature',      label: 'Temperature',      unit: '°C',       placeholder: '37.0',  step: '0.1', min: 30, max: 45 },
+  { key: 'blood_pressure_systolic',        label: 'Systolic BP',      unit: 'mmHg',     placeholder: '120',   min: 50,  max: 300 },
+  { key: 'blood_pressure_diastolic',       label: 'Diastolic BP',     unit: 'mmHg',     placeholder: '80',    min: 30,  max: 200 },
+  { key: 'pulse',          label: 'Pulse',            unit: 'bpm',      placeholder: '72',    min: 20,  max: 300 },
+  { key: 'oxygen_saturation',           label: 'SpO₂',             unit: '%',        placeholder: '98',    min: 50,  max: 100 },
   { key: 'respiratory_rate',   label: 'Resp. Rate',       unit: '/min',     placeholder: '16',    min: 5,   max: 60 },
-  { key: 'blood_glucose_mgdl', label: 'Blood Glucose',    unit: 'mg/dL',    placeholder: '90',    step: '0.1' },
 ]
 
 export function VitalsSection({ visit }: VitalsSectionProps) {
@@ -61,21 +60,20 @@ export function VitalsSection({ visit }: VitalsSectionProps) {
   const form = useForm<VitalsSchema>({
     resolver: zodResolver(vitalsSchema),
     defaultValues: {
-      weight_kg:           vitals?.weight_kg           ?? null,
-      height_cm:           vitals?.height_cm           ?? null,
-      temperature_c:       vitals?.temperature_c       ?? null,
-      systolic_bp:         vitals?.systolic_bp         ?? null,
-      diastolic_bp:        vitals?.diastolic_bp        ?? null,
-      pulse_bpm:           vitals?.pulse_bpm           ?? null,
-      spo2_pct:            vitals?.spo2_pct            ?? null,
-      respiratory_rate:    vitals?.respiratory_rate    ?? null,
-      blood_glucose_mgdl:  vitals?.blood_glucose_mgdl  ?? null,
-      notes:               vitals?.notes               ?? null,
+      weight:                   vitals?.weight                   ?? null,
+      height:                   vitals?.height                   ?? null,
+      temperature:              vitals?.temperature              ?? null,
+      blood_pressure_systolic:  vitals?.blood_pressure_systolic  ?? null,
+      blood_pressure_diastolic: vitals?.blood_pressure_diastolic ?? null,
+      pulse:                    vitals?.pulse                    ?? null,
+      oxygen_saturation:        vitals?.oxygen_saturation        ?? null,
+      respiratory_rate:         vitals?.respiratory_rate         ?? null,
+      notes:                    vitals?.notes                    ?? null,
     },
   })
 
-  const watchWeight = form.watch('weight_kg')
-  const watchHeight = form.watch('height_cm')
+  const watchWeight = form.watch('weight')
+  const watchHeight = form.watch('height')
   const liveOrSavedBmi = watchWeight && watchHeight
     ? Math.round((watchWeight / ((watchHeight / 100) ** 2)) * 10) / 10
     : vitals?.bmi ?? null
@@ -85,7 +83,7 @@ export function VitalsSection({ visit }: VitalsSectionProps) {
   function onSave(values: VitalsSchema) {
     startTransition(async () => {
       try {
-        await upsertVitals({ ...values, visit_id: visit.id })
+        await upsertVitals({ ...values, visit_id: visit.id, patient_id: visit.patient_id })
         toast.success('Vitals saved')
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to save vitals')

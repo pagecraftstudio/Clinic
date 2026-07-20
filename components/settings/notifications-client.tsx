@@ -353,7 +353,7 @@ function TemplateDialog({
           <Button
             onClick={handleSubmit(onSubmit)}
             disabled={isPending}
-            className="bg-blue-600 hover:bg-blue-700 {
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Template'}
           </Button>

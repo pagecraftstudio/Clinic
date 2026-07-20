@@ -22,7 +22,7 @@ export async function getRevenueReport(range: ReportRange) {
 
   const { data: payments } = await supabase
     .from('payments')
-    .select('amount, payment_method, paid_at')
+    .select('amount, method, paid_at')
     .gte('paid_at', `${range.from}T00:00:00`)
     .lte('paid_at', `${range.to}T23:59:59`)
 
@@ -38,7 +38,7 @@ export async function getRevenueReport(range: ReportRange) {
   // payment method breakdown
   const methodMap: Record<string, number> = {}
   for (const p of payments ?? []) {
-    const m = p.payment_method ?? 'other'
+    const m = p.method ?? 'other'
     methodMap[m] = (methodMap[m] ?? 0) + (p.amount ?? 0)
   }
 
@@ -180,17 +180,17 @@ export async function getInventoryReport() {
 
   const { data, error } = await supabase
     .from('inventory_items')
-    .select('id, name, category, quantity, min_quantity, unit_cost, expiry_date, is_active')
+    .select('id, name, category, current_stock, minimum_stock, unit_price, expiry_date, is_active')
     .is('deleted_at', null)
     .eq('is_active', true)
-    .order('quantity', { ascending: true })
+    .order('current_stock', { ascending: true })
 
   if (error) throw error
 
   const now = new Date()
   const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
-  const lowStock = (data ?? []).filter(i => (i.quantity ?? 0) <= (i.min_quantity ?? 0))
+  const lowStock = (data ?? []).filter(i => (i.current_stock ?? 0) <= (i.minimum_stock ?? 0))
   const expiringSoon = (data ?? []).filter(i => {
     if (!i.expiry_date) return false
     const exp = new Date(i.expiry_date)
@@ -206,10 +206,10 @@ export async function getInventoryReport() {
     const cat = item.category ?? 'Other'
     if (!categoryMap[cat]) categoryMap[cat] = { category: cat, count: 0, value: 0 }
     categoryMap[cat].count++
-    categoryMap[cat].value += (item.quantity ?? 0) * (item.unit_cost ?? 0)
+    categoryMap[cat].value += (item.current_stock ?? 0) * (item.unit_price ?? 0)
   }
 
-  const totalValue = (data ?? []).reduce((s, i) => s + (i.quantity ?? 0) * (i.unit_cost ?? 0), 0)
+  const totalValue = (data ?? []).reduce((s, i) => s + (i.current_stock ?? 0) * (i.unit_price ?? 0), 0)
 
   return {
     summary: {
@@ -233,7 +233,7 @@ export async function getLabReport(range: ReportRange) {
 
   const { data, error } = await supabase
     .from('lab_requests')
-    .select('id, status, test_name, created_at')
+    .select('id, status, created_at, lab_results(test_name)')
     .gte('created_at', `${range.from}T00:00:00`)
     .lte('created_at', `${range.to}T23:59:59`)
     .order('created_at', { ascending: true })
@@ -245,7 +245,9 @@ export async function getLabReport(range: ReportRange) {
 
   for (const r of data ?? []) {
     statusMap[r.status ?? 'unknown'] = (statusMap[r.status ?? 'unknown'] ?? 0) + 1
-    if (r.test_name) testMap[r.test_name] = (testMap[r.test_name] ?? 0) + 1
+    for (const result of r.lab_results ?? []) {
+      if (result.test_name) testMap[result.test_name] = (testMap[result.test_name] ?? 0) + 1
+    }
   }
 
   return {

@@ -41,7 +41,6 @@ export function VisitFiltersBar({ defaultValues }: VisitFiltersBarProps) {
 
   const hasFilters =
     defaultValues.status ||
-    defaultValues.visit_type ||
     defaultValues.date_from ||
     defaultValues.date_to
 
@@ -62,25 +61,9 @@ export function VisitFiltersBar({ defaultValues }: VisitFiltersBarProps) {
         <SelectContent>
           <SelectItem value={ALL}>All statuses</SelectItem>
           <SelectItem value="open">Open</SelectItem>
+          <SelectItem value="in_progress">In Progress</SelectItem>
           <SelectItem value="completed">Completed</SelectItem>
           <SelectItem value="cancelled">Cancelled</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {/* Visit type */}
-      <Select
-        value={defaultValues.visit_type ?? ALL}
-        onValueChange={(v) => set('visit_type', v)}
-      >
-        <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue placeholder="All types" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>All types</SelectItem>
-          <SelectItem value="outpatient">Outpatient</SelectItem>
-          <SelectItem value="follow_up">Follow-up</SelectItem>
-          <SelectItem value="emergency">Emergency</SelectItem>
-          <SelectItem value="teleconsult">Teleconsult</SelectItem>
         </SelectContent>
       </Select>
 

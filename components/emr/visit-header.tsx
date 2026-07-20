@@ -9,7 +9,7 @@ import { updateVisitStatus } from '@/features/emr/actions'
 import type { Visit, VisitStatus } from '@/types/emr'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import {
   DropdownMenu,
@@ -26,15 +26,17 @@ function initials(name?: string) {
 }
 
 const STATUS_OPTIONS: { value: VisitStatus; label: string }[] = [
-  { value: 'open',      label: 'Open' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'open',        label: 'Open' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed',   label: 'Completed' },
+  { value: 'cancelled',   label: 'Cancelled' },
 ]
 
 const STATUS_COLORS: Record<VisitStatus, string> = {
-  open:      'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300',
-  completed: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
-  cancelled: 'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400',
+  open:        'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300',
+  in_progress: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300',
+  completed:   'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300',
+  cancelled:   'bg-zinc-100 text-zinc-500 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400',
 }
 
 // ── Visit Header ─────────────────────────────────────────────
@@ -68,7 +70,6 @@ export function VisitHeader({ visit }: { visit: Visit }) {
 
         {/* Patient */}
         <Avatar className="h-7 w-7">
-          <AvatarImage src={visit.patient?.avatar_url ?? undefined} />
           <AvatarFallback className="text-xs">{initials(visit.patient?.full_name)}</AvatarFallback>
         </Avatar>
         <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -91,7 +92,7 @@ export function VisitHeader({ visit }: { visit: Visit }) {
         {/* Doctor */}
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <StethoscopeIcon className="h-3.5 w-3.5" />
-          {visit.doctor?.full_name ?? '—'}
+          {visit.doctor?.profiles?.display_name ?? '—'}
         </span>
 
         <div className="ml-auto flex items-center gap-2">
@@ -129,8 +130,7 @@ export function VisitHeader({ visit }: { visit: Visit }) {
 // ── Visit Sidebar ────────────────────────────────────────────
 
 export function VisitSidebar({ visit }: { visit: Visit }) {
-  const diagnoses = visit.soap_note?.diagnoses ?? []
-  const fu = visit.soap_note?.follow_up_date
+  const diagnosisCodes = visit.soap_note?.diagnosis_codes ?? []
 
   return (
     <aside className="w-64 shrink-0 border-l bg-muted/20 overflow-y-auto p-4 space-y-6">
@@ -144,7 +144,6 @@ export function VisitSidebar({ visit }: { visit: Visit }) {
           className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-muted transition-colors"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={visit.patient?.avatar_url ?? undefined} />
             <AvatarFallback className="text-xs">{initials(visit.patient?.full_name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
@@ -163,9 +162,8 @@ export function VisitSidebar({ visit }: { visit: Visit }) {
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
           Visit Info
         </p>
-        <Row label="Type" value={visit.visit_type.replace('_', ' ')} />
         <Row label="Date" value={format(new Date(visit.visit_date), 'dd MMM yyyy')} />
-        <Row label="Doctor" value={visit.doctor?.full_name ?? '—'} />
+        <Row label="Doctor" value={visit.doctor?.profiles?.display_name ?? '—'} />
         {visit.chief_complaint && (
           <div>
             <p className="text-xs text-muted-foreground mb-0.5">Chief Complaint</p>
@@ -175,43 +173,20 @@ export function VisitSidebar({ visit }: { visit: Visit }) {
       </section>
 
       {/* Diagnoses */}
-      {diagnoses.length > 0 && (
+      {diagnosisCodes.length > 0 && (
         <>
           <Separator />
           <section>
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Diagnoses
             </p>
-            <div className="space-y-1.5">
-              {diagnoses.map((dx, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Badge variant="outline" className="text-xs shrink-0 mt-0.5">
-                    {dx.code}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground leading-tight">{dx.description}</p>
-                </div>
+            <div className="flex flex-wrap gap-1.5">
+              {diagnosisCodes.map((code, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {code}
+                </Badge>
               ))}
             </div>
-          </section>
-        </>
-      )}
-
-      {/* Follow-up */}
-      {fu && (
-        <>
-          <Separator />
-          <section>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-              Follow-up
-            </p>
-            <p className="text-sm font-medium">
-              {format(new Date(fu), 'dd MMM yyyy')}
-            </p>
-            {visit.soap_note?.follow_up_notes && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {visit.soap_note.follow_up_notes}
-              </p>
-            )}
           </section>
         </>
       )}

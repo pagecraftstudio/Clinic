@@ -1,9 +1,15 @@
 // ============================================================
 // EMR Types
 // ============================================================
+// Kept in sync with the actual `visits` / `vitals` / `soap_notes`
+// columns in supabase/migrations. Some previously-modeled fields
+// (visit_type, soft-delete on visits, e-signing on SOAP notes,
+// structured follow-up) don't exist in the current schema and
+// were removed here rather than silently faked in the app layer.
+// Add a migration + re-add these fields if you want that
+// functionality back.
 
-export type VisitType = 'outpatient' | 'follow_up' | 'emergency' | 'teleconsult'
-export type VisitStatus = 'open' | 'completed' | 'cancelled'
+export type VisitStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface ICD10Code {
   code: string
@@ -13,18 +19,19 @@ export interface ICD10Code {
 
 export interface Visit {
   id: string
+  visit_number: string
   patient_id: string
   doctor_id: string
   appointment_id: string | null
   visit_date: string
-  visit_type: VisitType
   chief_complaint: string | null
   status: VisitStatus
-  deleted_at: string | null
+  notes: string | null
+  created_by: string | null
   created_at: string
   updated_at: string
-  patient?: { id: string; full_name: string; national_id: string | null; avatar_url: string | null }
-  doctor?: { id: string; full_name: string; specialty: string | null; avatar_url: string | null }
+  patient?: { id: string; full_name: string; national_id: string | null }
+  doctor?: { id: string; specialty: string | null; profiles: { display_name: string } | null }
   vitals?: Vitals | null
   soap_note?: SOAPNote | null
 }
@@ -32,18 +39,17 @@ export interface Visit {
 export interface Vitals {
   id: string
   visit_id: string
-  recorded_by: string
-  recorded_at: string
-  weight_kg: number | null
-  height_cm: number | null
+  patient_id: string
+  recorded_by: string | null
+  height: number | null
+  weight: number | null
   bmi: number | null
-  temperature_c: number | null
-  systolic_bp: number | null
-  diastolic_bp: number | null
-  pulse_bpm: number | null
-  spo2_pct: number | null
+  temperature: number | null
+  pulse: number | null
+  blood_pressure_systolic: number | null
+  blood_pressure_diastolic: number | null
+  oxygen_saturation: number | null
   respiratory_rate: number | null
-  blood_glucose_mgdl: number | null
   notes: string | null
   created_at: string
 }
@@ -51,16 +57,13 @@ export interface Vitals {
 export interface SOAPNote {
   id: string
   visit_id: string
+  patient_id: string
   doctor_id: string
   subjective: string | null
   objective: string | null
   assessment: string | null
   plan: string | null
-  diagnoses: ICD10Code[]
-  follow_up_date: string | null
-  follow_up_notes: string | null
-  signed_at: string | null
-  signed_by: string | null
+  diagnosis_codes: string[] | null
   created_at: string
   updated_at: string
 }
@@ -68,35 +71,36 @@ export interface SOAPNote {
 export interface CreateVisitInput {
   patient_id: string
   doctor_id: string
-  appointment_id?: string
+  appointment_id?: string | null
   visit_date: string
-  visit_type: VisitType
-  chief_complaint: string
+  chief_complaint?: string | null
+  notes?: string | null
+  created_by?: string | null
 }
 
 export interface UpsertVitalsInput {
   visit_id: string
-  weight_kg?: number | null
-  height_cm?: number | null
-  temperature_c?: number | null
-  systolic_bp?: number | null
-  diastolic_bp?: number | null
-  pulse_bpm?: number | null
-  spo2_pct?: number | null
+  patient_id: string
+  height?: number | null
+  weight?: number | null
+  bmi?: number | null
+  temperature?: number | null
+  pulse?: number | null
+  blood_pressure_systolic?: number | null
+  blood_pressure_diastolic?: number | null
+  oxygen_saturation?: number | null
   respiratory_rate?: number | null
-  blood_glucose_mgdl?: number | null
   notes?: string | null
 }
 
 export interface UpsertSOAPInput {
   visit_id: string
-  subjective?: string
-  objective?: string
-  assessment?: string
-  plan?: string
-  diagnoses?: ICD10Code[]
-  follow_up_date?: string | null
-  follow_up_notes?: string | null
+  patient_id: string
+  subjective?: string | null
+  objective?: string | null
+  assessment?: string | null
+  plan?: string | null
+  diagnosis_codes?: string[] | null
 }
 
 export interface PaginatedVisits {
@@ -110,7 +114,6 @@ export interface VisitFilters {
   patient_id?: string
   doctor_id?: string
   status?: VisitStatus
-  visit_type?: VisitType
   date_from?: string
   date_to?: string
   search?: string

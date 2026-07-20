@@ -26,7 +26,6 @@ export default async function EMRPage({ searchParams }: PageProps) {
 
   const filters: VisitFilters = {
     status:     params.status     as VisitFilters['status'],
-    visit_type: params.visit_type as VisitFilters['visit_type'],
     doctor_id:  params.doctor_id,
     date_from:  params.date_from,
     date_to:    params.date_to,

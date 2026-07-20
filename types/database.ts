@@ -33,6 +33,8 @@ export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'frida
 export type LabTestPriority = 'routine' | 'urgent' | 'stat'
 export type PrescriptionStatus = 'active' | 'dispensed' | 'expired' | 'cancelled'
 export type VisitStatus = 'open' | 'in_progress' | 'completed' | 'cancelled'
+export type NotificationChannel = 'email' | 'sms' | 'whatsapp' | 'push' | 'in_app'
+export type NotificationStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'read'
 
 export interface WorkingHours {
   day: DayOfWeek
@@ -63,9 +65,11 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'display_name' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['profiles']['Row'], 'display_name' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'profiles_id_fkey', columns: ['id'], isOneToOne: false, referencedRelation: 'users', referencedColumns: ['id'] },
+        ]
       }
       patients: {
         Row: {
@@ -108,9 +112,13 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['patients']['Row'], 'patient_number' | 'full_name' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['patients']['Row'], 'patient_number' | 'full_name' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['patients']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'patients_profile_id_fkey', columns: ['profile_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+          { foreignKeyName: 'patients_referred_by_fkey', columns: ['referred_by'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'patients_created_by_fkey', columns: ['created_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       patient_emergency_contacts: {
         Row: {
@@ -121,9 +129,11 @@ export interface Database {
           phone: string
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['patient_emergency_contacts']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['patient_emergency_contacts']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['patient_emergency_contacts']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'patient_emergency_contacts_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+        ]
       }
       patient_documents: {
         Row: {
@@ -136,9 +146,12 @@ export interface Database {
           uploaded_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['patient_documents']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['patient_documents']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['patient_documents']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'patient_documents_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'patient_documents_uploaded_by_fkey', columns: ['uploaded_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       doctors: {
         Row: {
@@ -153,13 +166,15 @@ export interface Database {
           bio: string | null
           is_active: boolean
           accepts_online: boolean
-          working_hours: Json
+          working_hours: WorkingHours[]
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['doctors']['Row'], 'employee_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['doctors']['Row'], 'employee_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['doctors']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'doctors_profile_id_fkey', columns: ['profile_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       doctor_leaves: {
         Row: {
@@ -172,9 +187,11 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['doctor_leaves']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['doctor_leaves']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['doctor_leaves']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'doctor_leaves_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+        ]
       }
       appointments: {
         Row: {
@@ -201,9 +218,13 @@ export interface Database {
           updated_at: string
           deleted_at: string | null
         }
-        Insert: Omit<Database['public']['Tables']['appointments']['Row'], 'appointment_number' | 'end_at' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['appointments']['Row'], 'appointment_number' | 'end_at' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['appointments']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'appointments_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'appointments_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'appointments_booked_by_fkey', columns: ['booked_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       visits: {
         Row: {
@@ -220,9 +241,13 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['visits']['Row'], 'visit_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['visits']['Row'], 'visit_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['visits']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'visits_appointment_id_fkey', columns: ['appointment_id'], isOneToOne: false, referencedRelation: 'appointments', referencedColumns: ['id'] },
+          { foreignKeyName: 'visits_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'visits_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+        ]
       }
       vitals: {
         Row: {
@@ -242,9 +267,12 @@ export interface Database {
           recorded_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['vitals']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['vitals']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['vitals']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'vitals_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'vitals_recorded_by_fkey', columns: ['recorded_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       soap_notes: {
         Row: {
@@ -260,9 +288,12 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['soap_notes']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['soap_notes']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['soap_notes']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'soap_notes_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'soap_notes_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       prescriptions: {
         Row: {
@@ -282,9 +313,14 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['prescriptions']['Row'], 'prescription_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['prescriptions']['Row'], 'prescription_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['prescriptions']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'prescriptions_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'prescriptions_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'prescriptions_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'prescriptions_dispensed_by_fkey', columns: ['dispensed_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       prescription_items: {
         Row: {
@@ -302,9 +338,11 @@ export interface Database {
           is_prn: boolean
           sort_order: number
         }
-        Insert: Omit<Database['public']['Tables']['prescription_items']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['prescription_items']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['prescription_items']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'prescription_items_prescription_id_fkey', columns: ['prescription_id'], isOneToOne: false, referencedRelation: 'prescriptions', referencedColumns: ['id'] },
+        ]
       }
       lab_requests: {
         Row: {
@@ -326,9 +364,14 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['lab_requests']['Row'], 'request_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['lab_requests']['Row'], 'request_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['lab_requests']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'lab_requests_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'lab_requests_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'lab_requests_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'lab_requests_technician_id_fkey', columns: ['technician_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       lab_results: {
         Row: {
@@ -342,9 +385,11 @@ export interface Database {
           notes: string | null
           sort_order: number
         }
-        Insert: Omit<Database['public']['Tables']['lab_results']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['lab_results']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['lab_results']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'lab_results_lab_request_id_fkey', columns: ['lab_request_id'], isOneToOne: false, referencedRelation: 'lab_requests', referencedColumns: ['id'] },
+        ]
       }
       lab_orders: {
         Row: {
@@ -359,9 +404,13 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['lab_orders']['Row'], 'request_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['lab_orders']['Row'], 'request_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['lab_orders']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'lab_orders_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'lab_orders_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'lab_orders_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+        ]
       }
       radiology_orders: {
         Row: {
@@ -384,9 +433,14 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['radiology_orders']['Row'], 'order_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['radiology_orders']['Row'], 'order_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['radiology_orders']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'radiology_orders_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'radiology_orders_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'radiology_orders_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'radiology_orders_technician_id_fkey', columns: ['technician_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       radiology_types: {
         Row: {
@@ -401,7 +455,7 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['radiology_types']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['radiology_types']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['radiology_types']['Insert']>
         Relationships: []
       }
@@ -416,9 +470,12 @@ export interface Database {
           uploaded_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['radiology_attachments']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['radiology_attachments']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['radiology_attachments']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'radiology_attachments_order_id_fkey', columns: ['order_id'], isOneToOne: false, referencedRelation: 'radiology_orders', referencedColumns: ['id'] },
+          { foreignKeyName: 'radiology_attachments_uploaded_by_fkey', columns: ['uploaded_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       invoices: {
         Row: {
@@ -449,9 +506,15 @@ export interface Database {
           updated_at: string
           deleted_at: string | null
         }
-        Insert: Omit<Database['public']['Tables']['invoices']['Row'], 'invoice_number' | 'balance' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['invoices']['Row'], 'invoice_number' | 'balance' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['invoices']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'invoices_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'invoices_doctor_id_fkey', columns: ['doctor_id'], isOneToOne: false, referencedRelation: 'doctors', referencedColumns: ['id'] },
+          { foreignKeyName: 'invoices_visit_id_fkey', columns: ['visit_id'], isOneToOne: false, referencedRelation: 'visits', referencedColumns: ['id'] },
+          { foreignKeyName: 'invoices_appointment_id_fkey', columns: ['appointment_id'], isOneToOne: false, referencedRelation: 'appointments', referencedColumns: ['id'] },
+          { foreignKeyName: 'invoices_created_by_fkey', columns: ['created_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       invoice_items: {
         Row: {
@@ -464,9 +527,11 @@ export interface Database {
           total: number
           sort_order: number
         }
-        Insert: Omit<Database['public']['Tables']['invoice_items']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['invoice_items']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['invoice_items']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'invoice_items_invoice_id_fkey', columns: ['invoice_id'], isOneToOne: false, referencedRelation: 'invoices', referencedColumns: ['id'] },
+        ]
       }
       payments: {
         Row: {
@@ -480,9 +545,11 @@ export interface Database {
           collected_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['payments']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['payments']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['payments']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'payments_invoice_id_fkey', columns: ['invoice_id'], isOneToOne: false, referencedRelation: 'invoices', referencedColumns: ['id'] },
+        ]
       }
       refunds: {
         Row: {
@@ -497,9 +564,12 @@ export interface Database {
           processed_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['refunds']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['refunds']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['refunds']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'refunds_payment_id_fkey', columns: ['payment_id'], isOneToOne: false, referencedRelation: 'payments', referencedColumns: ['id'] },
+          { foreignKeyName: 'refunds_invoice_id_fkey', columns: ['invoice_id'], isOneToOne: false, referencedRelation: 'invoices', referencedColumns: ['id'] },
+        ]
       }
       inventory_items: {
         Row: {
@@ -525,9 +595,11 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['inventory_items']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['inventory_items']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['inventory_items']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'inventory_items_supplier_id_fkey', columns: ['supplier_id'], isOneToOne: false, referencedRelation: 'suppliers', referencedColumns: ['id'] },
+        ]
       }
       suppliers: {
         Row: {
@@ -542,7 +614,7 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['suppliers']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['suppliers']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['suppliers']['Insert']>
         Relationships: []
       }
@@ -560,9 +632,12 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['purchase_orders']['Row'], 'order_number' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['purchase_orders']['Row'], 'order_number' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['purchase_orders']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'purchase_orders_supplier_id_fkey', columns: ['supplier_id'], isOneToOne: false, referencedRelation: 'suppliers', referencedColumns: ['id'] },
+          { foreignKeyName: 'purchase_orders_created_by_fkey', columns: ['created_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       purchase_order_items: {
         Row: {
@@ -574,9 +649,11 @@ export interface Database {
           unit_cost: number
           total: number
         }
-        Insert: Omit<Database['public']['Tables']['purchase_order_items']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['purchase_order_items']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['purchase_order_items']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'purchase_order_items_item_id_fkey', columns: ['item_id'], isOneToOne: false, referencedRelation: 'inventory_items', referencedColumns: ['id'] },
+        ]
       }
       stock_movements: {
         Row: {
@@ -591,9 +668,12 @@ export interface Database {
           performed_by: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['stock_movements']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['stock_movements']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['stock_movements']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'stock_movements_item_id_fkey', columns: ['item_id'], isOneToOne: false, referencedRelation: 'inventory_items', referencedColumns: ['id'] },
+          { foreignKeyName: 'stock_movements_performed_by_fkey', columns: ['performed_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
       clinic_settings: {
         Row: {
@@ -628,7 +708,7 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['clinic_settings']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['clinic_settings']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['clinic_settings']['Insert']>
         Relationships: []
       }
@@ -642,7 +722,7 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['holidays']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['holidays']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['holidays']['Insert']>
         Relationships: []
       }
@@ -660,7 +740,7 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['notification_templates']['Row'], 'id' | 'created_at' | 'updated_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['notification_templates']['Row'], 'id' | 'created_at' | 'updated_at'>>
         Update: Partial<Database['public']['Tables']['notification_templates']['Insert']>
         Relationships: []
       }
@@ -670,7 +750,7 @@ export interface Database {
           module: string
           action: string
         }
-        Insert: Omit<Database['public']['Tables']['permissions']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['permissions']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['permissions']['Insert']>
         Relationships: []
       }
@@ -680,25 +760,54 @@ export interface Database {
           role: UserRole
           permission_id: string
         }
-        Insert: Omit<Database['public']['Tables']['role_permissions']['Row'], 'id'>
+        Insert: Partial<Omit<Database['public']['Tables']['role_permissions']['Row'], 'id'>>
         Update: Partial<Database['public']['Tables']['role_permissions']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'role_permissions_permission_id_fkey', columns: ['permission_id'], isOneToOne: false, referencedRelation: 'permissions', referencedColumns: ['id'] },
+        ]
       }
       audit_logs: {
         Row: {
           id: string
-          performed_by: string | null
+          profile_id: string | null
           action: string
           table_name: string | null
           record_id: string | null
           old_data: Json | null
           new_data: Json | null
           ip_address: string | null
+          user_agent: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>
+        Insert: Partial<Omit<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'created_at'>>
         Update: Partial<Database['public']['Tables']['audit_logs']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'audit_logs_profile_id_fkey', columns: ['profile_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
+      }
+      notifications: {
+        Row: {
+          id: string
+          patient_id: string | null
+          profile_id: string | null
+          channel: NotificationChannel
+          event: string
+          subject: string | null
+          body: string
+          status: NotificationStatus
+          scheduled_at: string | null
+          sent_at: string | null
+          read_at: string | null
+          error: string | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: Partial<Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'created_at'>>
+        Update: Partial<Database['public']['Tables']['notifications']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'notifications_patient_id_fkey', columns: ['patient_id'], isOneToOne: false, referencedRelation: 'patients', referencedColumns: ['id'] },
+          { foreignKeyName: 'notifications_profile_id_fkey', columns: ['profile_id'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
+        ]
       }
     }
     Views: {
@@ -722,6 +831,7 @@ export interface Database {
           doctor_name: string
           specialty: string
         }
+        Relationships: []
       }
       v_patient_summary: {
         Row: Database['public']['Tables']['patients']['Row'] & {
@@ -733,6 +843,7 @@ export interface Database {
           outstanding_balance: number
           last_visit_date: string | null
         }
+        Relationships: []
       }
     }
     Functions: {

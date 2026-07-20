@@ -29,21 +29,19 @@ export async function getVisits(
     .select(
       `
       *,
-      patient:patients(id, full_name, national_id, avatar_url),
-      doctor:profiles(id, full_name, specialty, avatar_url),
+      patient:patients(id, full_name, national_id),
+      doctor:doctors(id, specialty, profiles(display_name)),
       vitals(*),
       soap_note:soap_notes(*)
     `,
       { count: 'exact' }
     )
-    .is('deleted_at', null)
     .order('visit_date', { ascending: false })
     .range(from, to)
 
   if (filters.patient_id)  query = query.eq('patient_id', filters.patient_id)
   if (filters.doctor_id)   query = query.eq('doctor_id', filters.doctor_id)
   if (filters.status)      query = query.eq('status', filters.status)
-  if (filters.visit_type)  query = query.eq('visit_type', filters.visit_type)
   if (filters.date_from)   query = query.gte('visit_date', filters.date_from)
   if (filters.date_to)     query = query.lte('visit_date', filters.date_to)
 
@@ -52,7 +50,7 @@ export async function getVisits(
   if (error) throw new Error(error.message)
 
   return {
-    data: (data ?? []) as Visit[],
+    data: (data ?? []) as unknown as Visit[],
     count: count ?? 0,
     page,
     per_page: perPage,
@@ -67,18 +65,17 @@ export async function getVisitById(id: string): Promise<Visit> {
     .select(
       `
       *,
-      patient:patients(id, full_name, national_id, avatar_url),
-      doctor:profiles(id, full_name, specialty, avatar_url),
+      patient:patients(id, full_name, national_id),
+      doctor:doctors(id, specialty, profiles(display_name)),
       vitals(*),
       soap_note:soap_notes(*)
     `
     )
     .eq('id', id)
-    .is('deleted_at', null)
     .single()
 
   if (error) throw new Error(error.message)
-  return data as Visit
+  return data as unknown as Visit
 }
 
 export async function createVisit(input: CreateVisitInput): Promise<Visit> {
@@ -92,7 +89,7 @@ export async function createVisit(input: CreateVisitInput): Promise<Visit> {
 
   if (error) throw new Error(error.message)
   revalidatePath('/emr')
-  return data as Visit
+  return data as unknown as Visit
 }
 
 export async function updateVisitStatus(
@@ -111,12 +108,14 @@ export async function updateVisitStatus(
   revalidatePath(`/emr/${id}`)
 }
 
-export async function softDeleteVisit(id: string): Promise<void> {
+// There is no soft-delete column on `visits` in the current schema.
+// Cancelling the visit is the closest supported equivalent.
+export async function cancelVisit(id: string): Promise<void> {
   const supabase = await createServerClient()
 
   const { error } = await supabase
     .from('visits')
-    .update({ deleted_at: new Date().toISOString() })
+    .update({ status: 'cancelled' })
     .eq('id', id)
 
   if (error) throw new Error(error.message)
@@ -153,6 +152,10 @@ export async function upsertVitals(input: UpsertVitalsInput): Promise<Vitals> {
 }
 
 // ── SOAP Notes ───────────────────────────────────────────────
+// Note: the current schema has no e-signing (signed_at/signed_by)
+// or structured follow-up fields on soap_notes — just the core
+// SOAP text fields plus diagnosis_codes. If you want signing back,
+// add those columns via a migration first.
 
 export async function upsertSOAPNote(input: UpsertSOAPInput): Promise<SOAPNote> {
   const supabase = await createServerClient()
@@ -161,11 +164,9 @@ export async function upsertSOAPNote(input: UpsertSOAPInput): Promise<SOAPNote> 
 
   const { data: existing } = await supabase
     .from('soap_notes')
-    .select('id, signed_at')
+    .select('id')
     .eq('visit_id', input.visit_id)
     .maybeSingle()
-
-  if (existing?.signed_at) throw new Error('Cannot edit a signed note')
 
   const { data, error } = existing
     ? await supabase
@@ -185,20 +186,6 @@ export async function upsertSOAPNote(input: UpsertSOAPInput): Promise<SOAPNote> 
   return data as SOAPNote
 }
 
-export async function signSOAPNote(noteId: string): Promise<void> {
-  const supabase = await createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Unauthorized')
-
-  const { error } = await supabase
-    .from('soap_notes')
-    .update({ signed_at: new Date().toISOString(), signed_by: user.id })
-    .eq('id', noteId)
-    .is('signed_at', null) // idempotent guard
-
-  if (error) throw new Error(error.message)
-}
-
 export async function getPatientVisitHistory(
   patientId: string,
   limit = 10
@@ -209,16 +196,15 @@ export async function getPatientVisitHistory(
     .from('visits')
     .select(
       `
-      id, visit_date, visit_type, status, chief_complaint,
-      doctor:profiles(id, full_name, specialty),
-      soap_note:soap_notes(assessment, diagnoses, follow_up_date)
+      id, visit_date, status, chief_complaint,
+      doctor:doctors(id, specialty, profiles(display_name)),
+      soap_note:soap_notes(assessment, diagnosis_codes)
     `
     )
     .eq('patient_id', patientId)
-    .is('deleted_at', null)
     .order('visit_date', { ascending: false })
     .limit(limit)
 
   if (error) throw new Error(error.message)
-  return (data ?? []) as Visit[]
+  return (data ?? []) as unknown as Visit[]
 }

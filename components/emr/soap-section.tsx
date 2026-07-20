@@ -4,7 +4,7 @@ import { useTransition, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { upsertSOAPNote, signSOAPNote } from '@/features/emr/actions'
+import { upsertSOAPNote } from '@/features/emr/actions'
 import { soapSchema, type SOAPSchema } from '@/lib/validations/emr'
 import type { Visit, ICD10Code } from '@/types/emr'
 import {
@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { PlusIcon, TrashIcon, PenLineIcon } from 'lucide-react'
+import { PlusIcon, TrashIcon } from 'lucide-react'
 
 interface SOAPSectionProps {
   visit: Visit
@@ -41,44 +41,41 @@ const SOAP_FIELDS = [
   { key: 'plan' as const,        label: 'P — Plan',        hint: 'Treatment, referrals, follow-up instructions' },
 ]
 
+// Diagnosis codes are stored as a flat string[] (soap_notes.diagnosis_codes).
+// This UI collects a code + description locally for a nicer add-flow, but
+// only the codes themselves are persisted.
+function codesToLocalDiagnoses(codes: string[] | null | undefined): ICD10Code[] {
+  return (codes ?? []).map((code) => ({ code, description: '', type: 'primary' as const }))
+}
+
 export function SOAPSection({ visit, readOnly }: SOAPSectionProps) {
   const note = visit.soap_note
   const [isPending, startTransition] = useTransition()
-  const [diagnoses, setDiagnoses] = useState<ICD10Code[]>(note?.diagnoses ?? [])
+  const [diagnoses, setDiagnoses] = useState<ICD10Code[]>(codesToLocalDiagnoses(note?.diagnosis_codes))
   const [newDx, setNewDx] = useState({ code: '', description: '', type: 'primary' as ICD10Code['type'] })
 
   const form = useForm<SOAPSchema>({
     resolver: zodResolver(soapSchema),
     defaultValues: {
-      subjective:      note?.subjective ?? '',
-      objective:       note?.objective ?? '',
-      assessment:      note?.assessment ?? '',
-      plan:            note?.plan ?? '',
-      diagnoses:       note?.diagnoses ?? [],
-      follow_up_date:  note?.follow_up_date ?? null,
-      follow_up_notes: note?.follow_up_notes ?? '',
+      subjective: note?.subjective ?? '',
+      objective:  note?.objective ?? '',
+      assessment: note?.assessment ?? '',
+      plan:       note?.plan ?? '',
     },
   })
 
   function onSave(values: SOAPSchema) {
     startTransition(async () => {
       try {
-        await upsertSOAPNote({ ...values, diagnoses, visit_id: visit.id })
+        await upsertSOAPNote({
+          ...values,
+          visit_id: visit.id,
+          patient_id: visit.patient_id,
+          diagnosis_codes: diagnoses.map((d) => d.code),
+        })
         toast.success('SOAP note saved')
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to save')
-      }
-    })
-  }
-
-  function onSign() {
-    if (!note?.id) return
-    startTransition(async () => {
-      try {
-        await signSOAPNote(note.id)
-        toast.success('Note signed and locked')
-      } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : 'Failed to sign')
       }
     })
   }
@@ -192,67 +189,12 @@ export function SOAPSection({ visit, readOnly }: SOAPSectionProps) {
           )}
         </div>
 
-        <Separator />
-
-        {/* Follow-up */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="follow_up_date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Follow-up Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    value={field.value ?? ''}
-                    readOnly={readOnly}
-                    className="text-sm"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="follow_up_notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm">Follow-up Notes</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    readOnly={readOnly}
-                    placeholder="Instructions for next visit"
-                    className="text-sm"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         {/* Actions */}
         {!readOnly && (
           <div className="flex items-center justify-end gap-2 pt-2">
-            <Button type="submit" variant="outline" disabled={isPending}>
-              Save Draft
+            <Button type="submit" disabled={isPending}>
+              Save
             </Button>
-            {note?.id && (
-              <Button
-                type="button"
-                onClick={onSign}
-                disabled={isPending}
-                className="gap-1.5"
-              >
-                <PenLineIcon className="h-4 w-4" />
-                Sign & Lock
-              </Button>
-            )}
           </div>
         )}
       </form>

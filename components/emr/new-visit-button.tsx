@@ -22,24 +22,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
-
-const VISIT_TYPES = [
-  { value: 'outpatient',   label: 'Outpatient' },
-  { value: 'follow_up',    label: 'Follow-up' },
-  { value: 'emergency',    label: 'Emergency' },
-  { value: 'teleconsult',  label: 'Teleconsult' },
-]
 
 export function NewVisitButton() {
   const [open, setOpen] = useState(false)
@@ -51,7 +37,6 @@ export function NewVisitButton() {
     defaultValues: {
       patient_id:      '',
       doctor_id:       '',
-      visit_type:      'outpatient',
       visit_date:      new Date().toISOString().slice(0, 16),
       chief_complaint: '',
     },
@@ -118,31 +103,6 @@ export function NewVisitButton() {
             />
 
             <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="visit_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {VISIT_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="visit_date"
