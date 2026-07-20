@@ -15,12 +15,9 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div
-        className="flex flex-1 flex-col overflow-hidden"
-        style={{ marginLeft: 'var(--sidebar-width)' }}
-      >
+      <div className="flex flex-1 flex-col overflow-hidden ml-[240px]">
         <Topbar />
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>
