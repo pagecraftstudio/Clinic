@@ -45,7 +45,7 @@ export function HolidaysClient({ initialHolidays }: Props) {
     <div className="space-y-5 max-w-2xl">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[13px] text-[#A1A8B8]">
+          <p className="text-[13px] text-[var(--text-muted)]">
             {holidays.length} holidays configured
           </p>
         </div>
@@ -59,7 +59,7 @@ export function HolidaysClient({ initialHolidays }: Props) {
       </div>
 
       {grouped.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.06] py-16 flex flex-col items-center gap-3 text-[#A1A8B8]">
+        <div className="rounded-xl border border-[var(--border)] py-16 flex flex-col items-center gap-3 text-[var(--text-muted)]">
           <Calendar size={28} className="opacity-40" />
           <p className="text-[13px]">No holidays configured</p>
         </div>
@@ -67,24 +67,24 @@ export function HolidaysClient({ initialHolidays }: Props) {
         <div className="space-y-4">
           {grouped.map(({ month, holidays: mHolidays }) => (
             <div key={month}>
-              <h3 className="text-[11px] font-semibold text-[#A1A8B8] uppercase tracking-widest mb-2 px-1">
+              <h3 className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-2 px-1">
                 {month}
               </h3>
-              <div className="rounded-xl border border-white/[0.06] divide-y divide-white/[0.04]">
+              <div className="rounded-xl border border-[var(--border)] divide-y divide-[var(--border)]">
                 {mHolidays.map((h) => (
-                  <div key={h.id} className="flex items-center gap-4 px-4 py-3 hover:bg-white/[0.02] transition-colors">
-                    <div className="w-10 h-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex flex-col items-center justify-center flex-shrink-0">
-                      <span className="text-[10px] text-[#A1A8B8] leading-none">
+                  <div key={h.id} className="flex items-center gap-4 px-4 py-3 hover:bg-[var(--bg-subtle)] transition-colors">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--bg-subtle)] border border-[var(--border)] flex flex-col items-center justify-center flex-shrink-0">
+                      <span className="text-[10px] text-[var(--text-muted)] leading-none">
                         {new Date(h.date).toLocaleString('en', { month: 'short' }).toUpperCase()}
                       </span>
-                      <span className="text-white font-semibold text-[15px] leading-none mt-0.5">
+                      <span className="font-semibold text-[15px] leading-none mt-0.5">
                         {new Date(h.date).getDate()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-[13px] font-medium">{h.name}</p>
+                      <p className="text-[13px] font-medium">{h.name}</p>
                       {h.name_ar && (
-                        <p className="text-[#A1A8B8] text-[11px]" dir="rtl">{h.name_ar}</p>
+                        <p className="text-[var(--text-muted)] text-[11px]" dir="rtl">{h.name_ar}</p>
                       )}
                     </div>
                     {h.is_recurring && (
@@ -96,7 +96,7 @@ export function HolidaysClient({ initialHolidays }: Props) {
                     <button
                       onClick={() => handleDelete(h.id)}
                       disabled={isPending}
-                      className="w-7 h-7 rounded-md flex items-center justify-center text-[#A1A8B8] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -145,16 +145,16 @@ function CreateHolidayDialog({ open, onClose }: { open: boolean; onClose: () => 
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Holiday Name (EN)</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Holiday Name (EN)</Label>
             <Input {...register('name')} placeholder="Eid Al-Fitr" className={inputCls} />
             {errors.name && <p className="text-[11px] text-red-400">{errors.name.message}</p>}
           </div>
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Holiday Name (AR)</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Holiday Name (AR)</Label>
             <Input {...register('name_ar')} placeholder="عيد الفطر" dir="rtl" className={inputCls} />
           </div>
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Date</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Date</Label>
             <Input {...register('date')} type="date" className={inputCls} />
             {errors.date && <p className="text-[11px] text-red-400">{errors.date.message}</p>}
           </div>
@@ -163,21 +163,21 @@ function CreateHolidayDialog({ open, onClose }: { open: boolean; onClose: () => 
             onClick={() => setValue('is_recurring', !isRecurring)}
             className={cn(
               'flex items-center gap-2 text-[13px] transition-colors',
-              isRecurring ? 'text-blue-300' : 'text-[#A1A8B8]'
+              isRecurring ? 'text-blue-300' : 'text-[var(--text-muted)]'
             )}
           >
             <div className={cn(
               'w-4 h-4 rounded border flex items-center justify-center',
-              isRecurring ? 'bg-blue-600 border-blue-600' : 'border-white/[0.12]'
+              isRecurring ? 'bg-blue-600 border-blue-600' : 'border-[var(--border-strong)]'
             )}>
-              {isRecurring && <span className="text-white text-[9px]">✓</span>}
+              {isRecurring && <span className="text-[9px]">✓</span>}
             </div>
             Repeat every year
           </button>
           {error && <p className="text-[13px] text-red-400">{error}</p>}
         </form>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-white/[0.08]">Cancel</Button>
+          <Button variant="outline" onClick={onClose} className="border-[var(--border)]">Cancel</Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             disabled={isPending}
@@ -191,4 +191,4 @@ function CreateHolidayDialog({ open, onClose }: { open: boolean; onClose: () => 
   )
 }
 
-const inputCls = 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'

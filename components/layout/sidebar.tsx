@@ -61,7 +61,7 @@ export function Sidebar() {
   return (
     <aside
       className="fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/[0.06]"
-      style={{ width: '240px', background: '#0F1117' }}
+      style={{ width: '240px', background: 'var(--sidebar-bg)' }}
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06]">

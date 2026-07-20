@@ -26,9 +26,10 @@ export function SettingsNav() {
             className={cn(
               'px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap',
               active
-                ? 'text-white border-blue-500'
-                : 'text-[#A1A8B8] border-transparent hover:text-white hover:border-white/20'
+                ? 'border-blue-500'
+                : 'border-transparent hover:border-[var(--border-strong)]'
             )}
+            style={{ color: active ? 'var(--text-primary)' : 'var(--text-muted)' }}
           >
             {tab.label}
           </Link>

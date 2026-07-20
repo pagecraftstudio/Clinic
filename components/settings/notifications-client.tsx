@@ -91,7 +91,7 @@ export function NotificationsClient({ initialTemplates }: Props) {
               'px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors',
               filterChannel === 'all'
                 ? 'bg-blue-600 text-white'
-                : 'bg-white/[0.04] text-[#A1A8B8] hover:bg-white/[0.08]'
+                : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-muted)]'
             )}
           >
             All
@@ -104,7 +104,7 @@ export function NotificationsClient({ initialTemplates }: Props) {
                 'px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors',
                 filterChannel === ch.value
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white/[0.04] text-[#A1A8B8] hover:bg-white/[0.08]'
+                  : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-muted)]'
               )}
             >
               {ch.label}
@@ -131,8 +131,8 @@ export function NotificationsClient({ initialTemplates }: Props) {
               className={cn(
                 'flex items-start gap-4 p-4 rounded-xl border transition-colors',
                 t.is_active
-                  ? 'border-white/[0.06] bg-white/[0.02]'
-                  : 'border-white/[0.03] bg-white/[0.01] opacity-60'
+                  ? 'border-[var(--border)] bg-[var(--bg-subtle)]'
+                  : 'border-[var(--border)] bg-[var(--bg-subtle)] opacity-60'
               )}
             >
               <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0', CHANNEL_COLORS[t.channel])}>
@@ -140,24 +140,24 @@ export function NotificationsClient({ initialTemplates }: Props) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-white text-[13px] font-medium">{t.name}</p>
+                  <p className="text-[13px] font-medium">{t.name}</p>
                   <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', CHANNEL_COLORS[t.channel])}>
                     {ch?.label}
                   </span>
                 </div>
-                <p className="text-[#A1A8B8] text-[11px] mb-1">
-                  Event: <span className="text-white/70">{t.event.replace(/_/g, ' ')}</span>
+                <p className="text-[var(--text-muted)] text-[11px] mb-1">
+                  Event: <span className="text-[var(--text-secondary)]">{t.event.replace(/_/g, ' ')}</span>
                 </p>
                 {t.subject && (
-                  <p className="text-[#A1A8B8] text-[11px]">
-                    Subject: <span className="text-white/70">{t.subject}</span>
+                  <p className="text-[var(--text-muted)] text-[11px]">
+                    Subject: <span className="text-[var(--text-secondary)]">{t.subject}</span>
                   </p>
                 )}
-                <p className="text-[#A1A8B8] text-[11px] mt-1 line-clamp-2">{t.body}</p>
+                <p className="text-[var(--text-muted)] text-[11px] mt-1 line-clamp-2">{t.body}</p>
                 {t.variables && t.variables.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {t.variables.map((v) => (
-                      <span key={v} className="text-[10px] bg-white/[0.05] text-[#A1A8B8] px-1.5 py-0.5 rounded font-mono">
+                      <span key={v} className="text-[10px] bg-[var(--bg-muted)] text-[var(--text-muted)] px-1.5 py-0.5 rounded font-mono">
                         {v}
                       </span>
                     ))}
@@ -168,20 +168,20 @@ export function NotificationsClient({ initialTemplates }: Props) {
                 <button
                   onClick={() => handleToggle(t)}
                   disabled={isPending}
-                  className={cn('transition-colors', t.is_active ? 'text-emerald-400' : 'text-[#A1A8B8]')}
+                  className={cn('transition-colors', t.is_active ? 'text-emerald-400' : 'text-[var(--text-muted)]')}
                 >
                   {t.is_active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
                 </button>
                 <button
                   onClick={() => setEditTemplate(t)}
-                  className="w-7 h-7 rounded-md flex items-center justify-center text-[#A1A8B8] hover:text-white hover:bg-white/[0.06] transition-colors"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] transition-colors"
                 >
                   <Edit size={13} />
                 </button>
                 <button
                   onClick={() => handleDelete(t.id)}
                   disabled={isPending}
-                  className="w-7 h-7 rounded-md flex items-center justify-center text-[#A1A8B8] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="w-7 h-7 rounded-md flex items-center justify-center text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 size={13} />
                 </button>
@@ -190,7 +190,7 @@ export function NotificationsClient({ initialTemplates }: Props) {
           )
         })}
         {filtered.length === 0 && (
-          <div className="rounded-xl border border-white/[0.06] py-16 text-center text-[#A1A8B8] text-[13px]">
+          <div className="rounded-xl border border-[var(--border)] py-16 text-center text-[var(--text-muted)] text-[13px]">
             No templates found
           </div>
         )}
@@ -266,13 +266,13 @@ function TemplateDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Template Name</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Template Name</Label>
             <Input {...register('name')} placeholder="Appointment Reminder" className={inputCls} />
             {errors.name && <p className="text-[11px] text-red-400">{errors.name.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Channel</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Channel</Label>
               <Select
                 defaultValue={template?.channel}
                 onValueChange={(v) => setValue('channel', v as NotificationTemplateInput['channel'])}
@@ -289,7 +289,7 @@ function TemplateDialog({
               {errors.channel && <p className="text-[11px] text-red-400">{errors.channel.message}</p>}
             </div>
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Event</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Event</Label>
               <Select
                 defaultValue={template?.event}
                 onValueChange={(v) => setValue('event', v)}
@@ -308,32 +308,32 @@ function TemplateDialog({
           </div>
           {channel === 'email' && (
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Subject</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Subject</Label>
               <Input {...register('subject')} placeholder="Appointment Reminder — {{date}}" className={inputCls} />
             </div>
           )}
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Body (EN)</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Body (EN)</Label>
             <Textarea
               {...register('body')}
               rows={4}
               placeholder="Dear {{patient_name}}, your appointment is on {{date}} at {{time}}."
-              className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 text-[13px] resize-none"
+              className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
             />
             {errors.body && <p className="text-[11px] text-red-400">{errors.body.message}</p>}
           </div>
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Body (AR)</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Body (AR)</Label>
             <Textarea
               {...register('body_ar')}
               rows={3}
               dir="rtl"
               placeholder="عزيزي {{patient_name}}، موعدك يوم {{date}} الساعة {{time}}."
-              className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 text-[13px] resize-none"
+              className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-[12px] text-[#A1A8B8]">Variables (comma-separated)</Label>
+            <Label className="text-[12px] text-[var(--text-muted)]">Variables (comma-separated)</Label>
             <Input
               defaultValue={template?.variables?.join(', ') ?? ''}
               onChange={(e) =>
@@ -349,11 +349,11 @@ function TemplateDialog({
           {error && <p className="text-[13px] text-red-400">{error}</p>}
         </form>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-white/[0.08]">Cancel</Button>
+          <Button variant="outline" onClick={onClose} className="border-[var(--border)]">Cancel</Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             disabled={isPending}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 {
           >
             {isPending ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Template'}
           </Button>
@@ -363,4 +363,4 @@ function TemplateDialog({
   )
 }
 
-const inputCls = 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'

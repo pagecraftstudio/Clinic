@@ -113,11 +113,11 @@ export function ClinicSettingsClient({ settings }: Props) {
       <Section icon={Building2} title="Clinic Identity">
         <div className="flex items-start gap-6">
           <div className="flex-shrink-0">
-            <div className="w-20 h-20 rounded-xl border border-white/[0.08] bg-white/[0.04] flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] flex items-center justify-center overflow-hidden">
               {logoUrl ? (
                 <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
               ) : (
-                <Building2 size={28} className="text-[#A1A8B8]" />
+                <Building2 size={28} className="text-[var(--text-muted)]" />
               )}
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
@@ -125,7 +125,7 @@ export function ClinicSettingsClient({ settings }: Props) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={logoUploading}
-              className="mt-2 w-20 flex items-center justify-center gap-1.5 text-[11px] text-[#A1A8B8] hover:text-white transition-colors"
+              className="mt-2 w-20 flex items-center justify-center gap-1.5 text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               <Upload size={11} />
               {logoUploading ? 'Uploading…' : 'Upload'}
@@ -235,7 +235,7 @@ export function ClinicSettingsClient({ settings }: Props) {
       <Section icon={Clock} title="Working Hours">
         <div className="space-y-4">
           <div>
-            <Label className="text-[12px] text-[#A1A8B8] mb-2 block">Working Days</Label>
+            <Label className="text-[12px] text-[var(--text-muted)] mb-2 block">Working Days</Label>
             <div className="flex gap-2">
               {DAYS.map((day, i) => (
                 <button
@@ -246,7 +246,7 @@ export function ClinicSettingsClient({ settings }: Props) {
                     'w-10 h-10 rounded-lg text-[12px] font-medium transition-colors',
                     workingDays.includes(i)
                       ? 'bg-blue-600 text-white'
-                      : 'bg-white/[0.04] text-[#A1A8B8] hover:bg-white/[0.08]'
+                      : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-muted)]'
                   )}
                 >
                   {day}
@@ -276,7 +276,7 @@ export function ClinicSettingsClient({ settings }: Props) {
               <input
                 {...register('primary_color')}
                 type="color"
-                className="w-10 h-10 rounded-lg border border-white/[0.08] cursor-pointer bg-transparent"
+                className="w-10 h-10 rounded-lg border border-[var(--border)] cursor-pointer bg-transparent"
               />
               <Input {...register('primary_color')} placeholder="#0066FF" className={cn(inputCls, 'flex-1')} />
             </div>
@@ -289,7 +289,7 @@ export function ClinicSettingsClient({ settings }: Props) {
         <Button
           type="submit"
           disabled={isPending}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 {
         >
           <Save size={14} />
           {isPending ? 'Saving…' : 'Save Changes'}
@@ -303,7 +303,7 @@ export function ClinicSettingsClient({ settings }: Props) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const inputCls = 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
 
 function Section({
   icon: Icon,
@@ -315,10 +315,10 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-4">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5 space-y-4">
       <div className="flex items-center gap-2">
-        <Icon size={15} className="text-[#A1A8B8]" />
-        <h3 className="text-[13px] font-semibold text-white">{title}</h3>
+        <Icon size={15} className="text-[var(--text-muted)]" />
+        <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">{title}</h3>
       </div>
       {children}
     </div>
@@ -338,7 +338,7 @@ function Field({
 }) {
   return (
     <div className={cn('space-y-1', className)}>
-      <Label className="text-[12px] text-[#A1A8B8]">{label}</Label>
+      <Label className="text-[12px] text-[var(--text-muted)]">{label}</Label>
       {children}
       {error && <p className="text-[11px] text-red-400">{error}</p>}
     </div>

@@ -64,7 +64,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-3">
-        <h2 className="text-[15px] font-semibold text-white">Invoice Configuration</h2>
+        <h2 className="text-[15px] font-semibold text-[var(--text-primary)]">Invoice Configuration</h2>
         <button
           type="button"
           onClick={() => setPreviewMode(!previewMode)}
@@ -72,7 +72,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
             'flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-lg transition-colors',
             previewMode
               ? 'bg-blue-600 text-white'
-              : 'bg-white/[0.04] text-[#A1A8B8] hover:bg-white/[0.08]'
+              : 'bg-[var(--bg-subtle)] text-[var(--text-muted)] hover:bg-[var(--bg-muted)]'
           )}
         >
           <Eye size={12} />
@@ -83,13 +83,13 @@ export function InvoiceSettingsClient({ settings }: Props) {
       <div className="grid grid-cols-5 gap-6">
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className={cn('space-y-5', previewMode ? 'col-span-2' : 'col-span-5')}>
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-4">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
-              <Receipt size={14} className="text-[#A1A8B8]" />
-              <h3 className="text-[13px] font-semibold text-white">Numbering</h3>
+              <Receipt size={14} className="text-[var(--text-muted)]" />
+              <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Numbering</h3>
             </div>
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Invoice Prefix</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Invoice Prefix</Label>
               <Input
                 {...register('invoice_prefix')}
                 placeholder="INV"
@@ -99,30 +99,30 @@ export function InvoiceSettingsClient({ settings }: Props) {
               {errors.invoice_prefix && (
                 <p className="text-[11px] text-red-400">{errors.invoice_prefix.message as string}</p>
               )}
-              <p className="text-[11px] text-[#A1A8B8]">
-                Example invoice number: <span className="text-white font-mono">{sampleNumber}</span>
+              <p className="text-[11px] text-[var(--text-muted)]">
+                Example invoice number: <span className="font-mono">{sampleNumber}</span>
               </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-4">
-            <h3 className="text-[13px] font-semibold text-white">Invoice Content</h3>
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5 space-y-4">
+            <h3 className="text-[13px] font-semibold text-[var(--text-primary)]">Invoice Content</h3>
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Notes (shown on invoice)</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Notes (shown on invoice)</Label>
               <Textarea
                 {...register('invoice_notes')}
                 rows={3}
                 placeholder="Payment is due within 30 days. Thank you for choosing us."
-                className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 text-[13px] resize-none"
+                className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-[12px] text-[#A1A8B8]">Footer</Label>
+              <Label className="text-[12px] text-[var(--text-muted)]">Footer</Label>
               <Textarea
                 {...register('invoice_footer')}
                 rows={2}
                 placeholder="Licensed by Ministry of Health. License #12345"
-                className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 text-[13px] resize-none"
+                className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
             <Button
               type="submit"
               disabled={isPending}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 {
             >
               <Save size={14} />
               {isPending ? 'Saving…' : 'Save Changes'}
@@ -144,7 +144,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
         {/* Preview */}
         {previewMode && (
           <div className="col-span-3">
-            <div className="rounded-xl border border-white/[0.06] bg-white text-gray-900 p-6 text-[12px] shadow-xl">
+            <div className="rounded-xl border border-[var(--border)] bg-white text-gray-900 p-6 text-[12px] shadow-xl">
               {/* Invoice header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
@@ -227,4 +227,4 @@ export function InvoiceSettingsClient({ settings }: Props) {
   )
 }
 
-const inputCls = 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-[#A1A8B8]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
