@@ -14,9 +14,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // No public self-signup: staff accounts are created by an admin via
 // /settings/users. Only login and password-reset are public.
-// TEMP: '/debug-env' added for diagnosing an env var issue — remove
-// this entry once resolved, along with app/debug-env/page.tsx.
-const PUBLIC_ROUTES = ['/login', '/reset-password', '/debug-env']
+const PUBLIC_ROUTES = ['/login', '/reset-password']
 
 // IMPORTANT: this file runs on Vercel's Edge Runtime, which does not
 // support Node.js APIs. @supabase/supabase-js (pulled in via
