@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,6 +57,10 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
           </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="underline underline-offset-2">Create one</Link>
+          </p>
         </form>
       </CardContent>
     </Card>
