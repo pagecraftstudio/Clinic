@@ -12,7 +12,10 @@ interface TopbarProps {
 
 export function Topbar({ title }: TopbarProps) {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
   const router = useRouter()
@@ -110,13 +113,15 @@ export function Topbar({ title }: TopbarProps) {
           </button>
 
           {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-subtle)]"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+          {mounted && (
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-[var(--bg-subtle)]"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          )}
 
           {/* Notifications */}
           <button

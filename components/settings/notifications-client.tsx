@@ -318,7 +318,7 @@ function TemplateDialog({
               {...register('body')}
               rows={4}
               placeholder="Dear {{patient_name}}, your appointment is on {{date}} at {{time}}."
-              className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
+              className="bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
             />
             {errors.body && <p className="text-[11px] text-red-400">{errors.body.message}</p>}
           </div>
@@ -329,7 +329,7 @@ function TemplateDialog({
               rows={3}
               dir="rtl"
               placeholder="عزيزي {{patient_name}}، موعدك يوم {{date}} الساعة {{time}}."
-              className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
+              className="bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
             />
           </div>
           <div className="space-y-1">
@@ -363,4 +363,4 @@ function TemplateDialog({
   )
 }
 
-const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'

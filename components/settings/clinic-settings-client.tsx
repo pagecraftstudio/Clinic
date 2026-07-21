@@ -303,7 +303,7 @@ export function ClinicSettingsClient({ settings }: Props) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
 
 function Section({
   icon: Icon,

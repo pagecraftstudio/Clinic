@@ -113,7 +113,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
                 {...register('invoice_notes')}
                 rows={3}
                 placeholder="Payment is due within 30 days. Thank you for choosing us."
-                className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
+                className="bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
               />
             </div>
             <div className="space-y-1">
@@ -122,7 +122,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
                 {...register('invoice_footer')}
                 rows={2}
                 placeholder="Licensed by Ministry of Health. License #12345"
-                className="bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
+                className="bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 text-[13px] resize-none"
               />
             </div>
           </div>
@@ -227,4 +227,4 @@ export function InvoiceSettingsClient({ settings }: Props) {
   )
 }
 
-const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-white placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'
+const inputCls = 'bg-[var(--bg-subtle)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-blue-500/50 h-9 text-[13px]'

@@ -13,6 +13,28 @@
 
 @layer base {
   :root {
+    /* ── Shadcn/ui HSL tokens (required by tailwind.config.ts) ── */
+    --background:         0 0% 97%;
+    --foreground:         220 13% 7%;
+    --card:               0 0% 100%;
+    --card-foreground:    220 13% 7%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 220 13% 7%;
+    --primary:            221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          220 14% 96%;
+    --secondary-foreground: 220 13% 7%;
+    --muted:              220 14% 94%;
+    --muted-foreground:   220 9% 46%;
+    --accent:             220 14% 94%;
+    --accent-foreground:  220 13% 7%;
+    --destructive:        0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             220 13% 91%;
+    --input:              220 13% 91%;
+    --ring:               221 83% 53%;
+    --radius:             0.5rem;
+
     /* Backgrounds */
     --bg-base:       #F7F8FA;
     --bg-surface:    #FFFFFF;
@@ -80,6 +102,27 @@
   }
 
   .dark {
+    /* ── Shadcn/ui HSL tokens — dark ── */
+    --background:         220 13% 5%;
+    --foreground:         210 17% 90%;
+    --card:               220 13% 9%;
+    --card-foreground:    210 17% 90%;
+    --popover:            220 13% 9%;
+    --popover-foreground: 210 17% 90%;
+    --primary:            221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          220 13% 13%;
+    --secondary-foreground: 210 17% 90%;
+    --muted:              220 13% 13%;
+    --muted-foreground:   220 9% 55%;
+    --accent:             220 13% 13%;
+    --accent-foreground:  210 17% 90%;
+    --destructive:        0 63% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             220 13% 19%;
+    --input:              220 13% 19%;
+    --ring:               221 83% 53%;
+
     --bg-base:       #0D1117;
     --bg-surface:    #161B22;
     --bg-elevated:   #1C2128;
