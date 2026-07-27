@@ -32,7 +32,6 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     .insert({
       first_name,
       last_name,
-      display_name: display_name || `Dr. ${first_name} ${last_name}`,
       phone: phone || null,
       email,
       avatar_url: avatar_url || null,
@@ -105,7 +104,6 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
     .update({
       first_name,
       last_name,
-      display_name: display_name || `Dr. ${first_name} ${last_name}`,
       phone: phone || null,
       email,
       avatar_url: avatar_url || null,
