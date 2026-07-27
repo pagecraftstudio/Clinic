@@ -1,16 +1,17 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Bell, Sun, Moon, X } from 'lucide-react'
+import { Search, Bell, Sun, Moon, X, Menu } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 
 interface TopbarProps {
   title?: string
+  onMenuClick?: () => void
 }
 
-export function Topbar({ title }: TopbarProps) {
+export function Topbar({ title, onMenuClick }: TopbarProps) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -74,15 +75,23 @@ export function Topbar({ title }: TopbarProps) {
     <>
       {/* Topbar */}
       <header
-        className="fixed top-0 right-0 z-30 flex items-center justify-between h-16 px-6 border-b"
+        className="fixed top-0 left-0 right-0 md:left-[240px] z-30 flex items-center justify-between h-16 px-4 md:px-6 border-b"
         style={{
-          left: '240px',
           background: 'var(--bg-surface)',
           borderColor: 'var(--border)',
         }}
       >
-        {/* Left: page title */}
-        <div>
+        {/* Left: hamburger (mobile) + page title */}
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={onMenuClick}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-[var(--bg-subtle)]"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <Menu size={18} />
+          </button>
+
           {title && (
             <h1 className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
               {title}
@@ -92,10 +101,10 @@ export function Topbar({ title }: TopbarProps) {
 
         {/* Right: actions */}
         <div className="flex items-center gap-2">
-          {/* Search trigger */}
+          {/* Search trigger — hidden label on mobile */}
           <button
             onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50) }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] transition-colors"
+            className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg text-[13px] transition-colors"
             style={{
               background: 'var(--bg-subtle)',
               color: 'var(--text-muted)',
@@ -103,9 +112,9 @@ export function Topbar({ title }: TopbarProps) {
             }}
           >
             <Search size={14} />
-            <span>Search patients…</span>
+            <span className="hidden sm:inline">Search patients…</span>
             <kbd
-              className="text-[11px] px-1.5 py-0.5 rounded"
+              className="hidden sm:inline text-[11px] px-1.5 py-0.5 rounded"
               style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}
             >
               ⌘K
@@ -149,7 +158,7 @@ export function Topbar({ title }: TopbarProps) {
       {/* Search overlay */}
       {searchOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-24"
+          className="fixed inset-0 z-50 flex items-start justify-center pt-16 md:pt-24 px-4"
           style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}
           onClick={(e) => { if (e.target === e.currentTarget) { setSearchOpen(false); setQuery('') } }}
         >

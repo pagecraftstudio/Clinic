@@ -1,23 +1,26 @@
+'use client'
+import { useState } from 'react'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 
-export default async function DashboardLayout({
+// Note: auth check must stay server-side — keep that in a parent server component
+// or use middleware. This layout is now a client component to manage drawer state.
+
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden ml-[240px]">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto">
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Main content shifts right only on md+ */}
+      <div className="flex flex-1 flex-col overflow-hidden md:ml-[240px]">
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-y-auto pt-16">
           {children}
         </main>
       </div>

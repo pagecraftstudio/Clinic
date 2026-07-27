@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Calendar, UserCog, Receipt,
   FlaskConical, Scan, Package, BarChart3, Sparkles,
-  Settings, LogOut, ClipboardList, Building2,
+  Settings, LogOut, ClipboardList, Building2, X,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -45,7 +45,12 @@ const NAV_GROUPS = [
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  open?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
 
@@ -58,20 +63,29 @@ export function Sidebar() {
     router.push('/login')
   }
 
-  return (
+  const sidebarContent = (
     <aside
-      className="fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/[0.06]"
+      className="flex flex-col h-full border-r border-white/[0.06]"
       style={{ width: '240px', background: 'var(--sidebar-bg)' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06]">
+      <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06] flex-shrink-0">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-600">
           <Building2 size={16} color="white" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-white text-[13px] font-semibold leading-tight tracking-tight">Clinic CMS</p>
           <p className="text-[11px] text-[#A1A8B8]">Management System</p>
         </div>
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden w-7 h-7 flex items-center justify-center rounded-md text-[#A1A8B8] hover:text-white hover:bg-white/[0.08] transition-colors"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -85,7 +99,12 @@ export function Sidebar() {
               {group.items.map(({ href, icon: Icon, label }) => {
                 const active = isActive(href)
                 return (
-                  <Link key={href} href={href} className="block relative">
+                  <Link
+                    key={href}
+                    href={href}
+                    className="block relative"
+                    onClick={onClose}
+                  >
                     {active && (
                       <motion.div
                         layoutId="sidebar-pill"
@@ -113,9 +132,10 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 border-t border-white/[0.06] space-y-0.5">
+      <div className="p-3 border-t border-white/[0.06] space-y-0.5 flex-shrink-0">
         <Link
           href="/settings"
+          onClick={onClose}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors"
         >
           <Settings size={16} />
@@ -130,5 +150,30 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Desktop: fixed sidebar */}
+      <div className="hidden md:block fixed inset-y-0 left-0 z-40" style={{ width: '240px' }}>
+        {sidebarContent}
+      </div>
+
+      {/* Mobile: drawer overlay */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(2px)' }}
+            onClick={onClose}
+          />
+          {/* Drawer */}
+          <div className="relative z-10 h-full overflow-hidden" style={{ width: '240px' }}>
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
