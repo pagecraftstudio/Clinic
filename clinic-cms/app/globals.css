@@ -6,43 +6,64 @@
 
 /* ============================================================
    DESIGN TOKENS
-   Palette: Clinical slate + electric blue accent + warm neutrals
-   Signature: Sidebar uses subtle vertical rhythm with 1px rule
-   separators — clinical precision over decorative chrome.
+   Palette: Medical Teal — deep teal primary, warm white surfaces,
+   high-contrast charcoal text. Clear, readable, trustworthy.
    ============================================================ */
 
 @layer base {
   :root {
+    /* ── Shadcn/ui HSL tokens ── */
+    --background:         0 0% 98%;
+    --foreground:         210 20% 10%;
+    --card:               0 0% 100%;
+    --card-foreground:    210 20% 10%;
+    --popover:            0 0% 100%;
+    --popover-foreground: 210 20% 10%;
+    --primary:            178 72% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          178 20% 94%;
+    --secondary-foreground: 210 20% 10%;
+    --muted:              178 15% 92%;
+    --muted-foreground:   210 12% 38%;
+    --accent:             178 20% 92%;
+    --accent-foreground:  210 20% 10%;
+    --destructive:        0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             210 15% 87%;
+    --input:              210 15% 87%;
+    --ring:               178 72% 30%;
+    --radius:             0.5rem;
+
     /* Backgrounds */
-    --bg-base:       #F7F8FA;
+    --bg-base:       #F5F7F7;
     --bg-surface:    #FFFFFF;
     --bg-elevated:   #FFFFFF;
-    --bg-subtle:     #F0F2F5;
-    --bg-muted:      #E8EAED;
+    --bg-subtle:     #EDF2F2;
+    --bg-muted:      #E2EAEA;
 
-    /* Sidebar */
-    --sidebar-bg:    #0F1117;
-    --sidebar-text:  #A1A8B8;
+    /* Sidebar — deep teal */
+    --sidebar-bg:    #0D2B2B;
+    --sidebar-text:  #A8C8C8;
     --sidebar-active:#FFFFFF;
-    --sidebar-hover: rgba(255,255,255,0.06);
-    --sidebar-accent:#2563EB;
+    --sidebar-hover: rgba(255,255,255,0.07);
+    --sidebar-accent:#1FBFB0;
     --sidebar-width: 240px;
 
-    /* Accent — Electric Blue */
-    --accent:        #2563EB;
-    --accent-hover:  #1D4ED8;
-    --accent-light:  #EFF6FF;
-    --accent-border: #BFDBFE;
+    /* Accent — Medical Teal */
+    --accent:        #0D9488;
+    --accent-hover:  #0A7870;
+    --accent-light:  #F0FDFA;
+    --accent-border: #99E6E0;
 
-    /* Text */
-    --text-primary:  #0D1117;
-    --text-secondary:#4B5563;
-    --text-muted:    #9CA3AF;
+    /* Text — high contrast */
+    --text-primary:  #0F1C1C;
+    --text-secondary:#1A3333;
+    --text-muted:    #4A6565;
     --text-inverse:  #FFFFFF;
 
     /* Border */
-    --border:        #E5E7EB;
-    --border-strong: #D1D5DB;
+    --border:        #D0DCDC;
+    --border-strong: #B0C8C8;
 
     /* Status */
     --success:       #059669;
@@ -51,12 +72,12 @@
     --warning-light: #FFFBEB;
     --danger:        #DC2626;
     --danger-light:  #FEF2F2;
-    --info:          #0284C7;
-    --info-light:    #F0F9FF;
+    --info:          #0D9488;
+    --info-light:    #F0FDFA;
 
     /* Appointment status colors */
     --status-scheduled:   #6366F1;
-    --status-confirmed:   #0284C7;
+    --status-confirmed:   #0D9488;
     --status-checked-in:  #059669;
     --status-in-progress: #D97706;
     --status-completed:   #374151;
@@ -80,30 +101,52 @@
   }
 
   .dark {
-    --bg-base:       #0D1117;
-    --bg-surface:    #161B22;
-    --bg-elevated:   #1C2128;
-    --bg-subtle:     #21262D;
-    --bg-muted:      #2D333B;
+    /* ── Shadcn/ui HSL tokens — dark ── */
+    --background:         200 20% 6%;
+    --foreground:         180 20% 95%;
+    --card:               200 20% 9%;
+    --card-foreground:    180 20% 95%;
+    --popover:            200 20% 9%;
+    --popover-foreground: 180 20% 95%;
+    --primary:            178 60% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary:          200 15% 14%;
+    --secondary-foreground: 180 20% 95%;
+    --muted:              200 15% 14%;
+    --muted-foreground:   180 12% 65%;
+    --accent:             200 15% 14%;
+    --accent-foreground:  180 20% 95%;
+    --destructive:        0 63% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border:             200 15% 20%;
+    --input:              200 15% 20%;
+    --ring:               178 60% 42%;
 
-    --sidebar-bg:    #090C10;
-    --sidebar-text:  #8B949E;
+    --bg-base:       #0A1A1A;
+    --bg-surface:    #102020;
+    --bg-elevated:   #152828;
+    --bg-subtle:     #1A3030;
+    --bg-muted:      #223838;
+
+    --sidebar-bg:    #071515;
+    --sidebar-text:  #7AABAB;
     --sidebar-hover: rgba(255,255,255,0.05);
 
-    --text-primary:  #E6EDF3;
-    --text-secondary:#8B949E;
-    --text-muted:    #6E7681;
+    --text-primary:  #E8F5F5;
+    --text-secondary:#B8D8D8;
+    --text-muted:    #7AABAB;
 
-    --border:        #30363D;
-    --border-strong: #484F58;
+    --border:        #1E3E3E;
+    --border-strong: #2A5252;
 
-    --accent-light:  rgba(37,99,235,0.15);
-    --accent-border: rgba(37,99,235,0.3);
+    --accent:        #14B8A6;
+    --accent-light:  rgba(13,148,136,0.15);
+    --accent-border: rgba(13,148,136,0.3);
 
     --success-light: rgba(5,150,105,0.12);
     --warning-light: rgba(217,119,6,0.12);
     --danger-light:  rgba(220,38,38,0.12);
-    --info-light:    rgba(2,132,199,0.12);
+    --info-light:    rgba(13,148,136,0.12);
   }
 }
 
@@ -124,7 +167,6 @@
     line-height: 1.5;
   }
 
-  /* Remove default focus ring, use custom */
   *:focus { outline: none; }
   *:focus-visible {
     outline: 2px solid var(--accent);
@@ -132,7 +174,6 @@
     border-radius: var(--radius-sm);
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
@@ -141,14 +182,12 @@
   }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-  /* RTL support */
   [dir="rtl"] { font-family: 'Cairo', var(--font-sans); }
 }
 
 @layer utilities {
   .font-mono { font-family: var(--font-mono); }
 
-  /* Surface card */
   .card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
@@ -156,7 +195,6 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* Stat number style */
   .stat-number {
     font-size: 28px;
     font-weight: 700;
@@ -165,7 +203,6 @@
     color: var(--text-primary);
   }
 
-  /* Truncate helpers */
   .truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -173,7 +210,6 @@
     overflow: hidden;
   }
 
-  /* Animated skeleton */
   .skeleton {
     background: linear-gradient(
       90deg,
@@ -190,7 +226,6 @@
     100% { background-position: -200% 0; }
   }
 
-  /* Sidebar active dot indicator */
   .nav-active-dot {
     position: absolute;
     left: 0;
@@ -202,7 +237,6 @@
     border-radius: 0 2px 2px 0;
   }
 
-  /* Status badge base */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -215,7 +249,6 @@
   }
 }
 
-/* Framer Motion: respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
