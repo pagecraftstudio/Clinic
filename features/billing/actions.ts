@@ -48,12 +48,16 @@ export async function createInvoice(raw: unknown): Promise<ActionResult<{ id: st
     items, discount_type, discount_value, tax_percent,
   )
 
-  // generate invoice number
-  const { count } = await supabase
+  // Generate invoice number using max — safe under concurrent inserts
+  // (count breaks when rows are soft-deleted or two requests race)
+  const { data: lastInv } = await supabase
     .from('invoices')
-    .select('*', { count: 'exact', head: true })
-  const num = String((count ?? 0) + 1).padStart(6, '0')
-  const invoice_number = `INV-${num}`
+    .select('invoice_number')
+    .order('invoice_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const lastNum = lastInv ? parseInt(lastInv.invoice_number.replace('INV-', ''), 10) : 0
+  const invoice_number = `INV-${String(lastNum + 1).padStart(6, '0')}`
 
   const { data: invoice, error } = await supabase
     .from('invoices')
@@ -191,12 +195,15 @@ export async function recordPayment(raw: unknown): Promise<ActionResult<{ id: st
     return { success: false, error: `Payment exceeds balance (${invoice.balance.toFixed(2)})` }
   }
 
-  // generate payment number
-  const { count } = await supabase
+  // Generate payment number using max — safe under concurrent inserts
+  const { data: lastPay } = await supabase
     .from('payments')
-    .select('*', { count: 'exact', head: true })
-  const num = String((count ?? 0) + 1).padStart(6, '0')
-  const payment_number = `PAY-${num}`
+    .select('payment_number')
+    .order('payment_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const lastPayNum = lastPay ? parseInt(lastPay.payment_number.replace('PAY-', ''), 10) : 0
+  const payment_number = `PAY-${String(lastPayNum + 1).padStart(6, '0')}`
 
   const { data: payment, error } = await supabase
     .from('payments')

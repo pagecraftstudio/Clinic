@@ -67,8 +67,12 @@ export async function updatePrescription(id: string, raw: unknown): Promise<Acti
 
   if (error) return { success: false, error: error.message }
 
-  // replace items
-  await supabase.from('prescription_items').delete().eq('prescription_id', id)
+  // Replace items safely: snapshot old IDs, insert new rows, delete old only on success
+  const { data: oldRows } = await supabase
+    .from('prescription_items')
+    .select('id')
+    .eq('prescription_id', id)
+  const oldIds = (oldRows ?? []).map((r) => r.id)
 
   const itemRows = items.map((item, i) => ({
     ...item,
@@ -81,6 +85,10 @@ export async function updatePrescription(id: string, raw: unknown): Promise<Acti
     .insert(itemRows)
 
   if (itemsError) return { success: false, error: itemsError.message }
+
+  if (oldIds.length > 0) {
+    await supabase.from('prescription_items').delete().in('id', oldIds)
+  }
 
   revalidatePath('/prescriptions')
   revalidatePath(`/prescriptions/${id}`)

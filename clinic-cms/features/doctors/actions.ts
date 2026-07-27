@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { doctorSchema, leaveSchema } from '@/lib/validations/doctor'
 
 export interface ActionResult<T = undefined> {
@@ -18,6 +18,7 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
   }
 
   const supabase = await createClient()
+  const admin = await createAdminClient()
   const { data: auth } = await supabase.auth.getUser()
 
   const {
@@ -26,18 +27,35 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     follow_up_fee, bio, is_active, accepts_online, working_hours,
   } = parsed.data
 
-  // 1. Create profile
-  const { data: profile, error: profileErr } = await supabase
+  // 1. Create auth user — this also triggers profile row creation via DB trigger
+  const { data: authData, error: authErr } = await admin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { first_name, last_name },
+  })
+  if (authErr) return { success: false, error: authErr.message }
+  if (!authData.user) return { success: false, error: 'User creation failed' }
+
+  // 2. Update the auto-created profile with full details
+  const { data: profile, error: profileErr } = await admin
     .from('profiles')
-    .insert({
-      full_name: `${first_name} ${last_name}`.trim(),
+    .update({
+      first_name,
+      last_name,
       phone: phone || null,
       email,
+      avatar_url: avatar_url || null,
+      role: 'doctor',
     })
+    .eq('id', authData.user.id)
     .select('id')
     .single()
 
-  if (profileErr) return { success: false, error: profileErr.message }
+  if (profileErr) {
+    // Roll back auth user to avoid orphan
+    await admin.auth.admin.deleteUser(authData.user.id)
+    return { success: false, error: profileErr.message }
+  }
 
   // 2. Create doctor record
   const { data: doctor, error: doctorErr } = await supabase
@@ -99,9 +117,11 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({
-      full_name: `${first_name} ${last_name}`.trim(),
+      first_name,
+      last_name,
       phone: phone || null,
       email,
+      avatar_url: avatar_url || null,
     })
     .eq('id', doc.profile_id)
 
@@ -162,7 +182,7 @@ export async function deleteDoctor(id: string): Promise<ActionResult> {
     .select('id', { count: 'exact', head: true })
     .eq('doctor_id', id)
     .gte('scheduled_at', new Date().toISOString())
-    .not('status', 'in', '("cancelled","no_show")')
+    .not('status', 'in', '(cancelled,no_show)')
 
   if ((count ?? 0) > 0) {
     return { success: false, error: 'Doctor has upcoming appointments. Reassign or cancel them first.' }

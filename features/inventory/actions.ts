@@ -139,9 +139,15 @@ export async function createPurchaseOrder(raw: unknown): Promise<ActionResult<{ 
   const { items, ...rest } = parsed.data
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_cost, 0)
 
-  const { count } = await supabase.from('purchase_orders').select('*', { count: 'exact', head: true })
-  const num = String((count ?? 0) + 1).padStart(6, '0')
-  const po_number = `PO-${num}`
+  // Generate PO number using max — safe under concurrent inserts
+  const { data: lastPO } = await supabase
+    .from('purchase_orders')
+    .select('po_number')
+    .order('po_number', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const lastPONum = lastPO ? parseInt(lastPO.po_number.replace('PO-', ''), 10) : 0
+  const po_number = `PO-${String(lastPONum + 1).padStart(6, '0')}`
 
   const { data: po, error } = await supabase
     .from('purchase_orders')

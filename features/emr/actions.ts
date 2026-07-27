@@ -162,6 +162,15 @@ export async function upsertSOAPNote(input: UpsertSOAPInput): Promise<SOAPNote> 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Resolve the doctors.id from the auth user's profile_id
+  const { data: doctorRow, error: doctorLookupErr } = await supabase
+    .from('doctors')
+    .select('id')
+    .eq('profile_id', user.id)
+    .maybeSingle()
+  if (doctorLookupErr) throw new Error(doctorLookupErr.message)
+  if (!doctorRow) throw new Error('No doctor record found for the current user')
+
   const { data: existing } = await supabase
     .from('soap_notes')
     .select('id')
@@ -177,7 +186,7 @@ export async function upsertSOAPNote(input: UpsertSOAPInput): Promise<SOAPNote> 
         .single()
     : await supabase
         .from('soap_notes')
-        .insert({ ...input, doctor_id: user.id })
+        .insert({ ...input, doctor_id: doctorRow.id })
         .select()
         .single()
 

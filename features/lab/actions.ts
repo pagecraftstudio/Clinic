@@ -67,20 +67,32 @@ export async function updateLabResults(id: string, raw: unknown): Promise<Action
 
   if (error) return { success: false, error: error.message }
 
-  // replace results
-  await supabase.from('lab_results').delete().eq('lab_request_id', id)
-
+  // Replace results safely: insert new rows first, delete old only on success
   const testRows = tests.map((t, i) => ({
     ...t,
     lab_request_id: id,
     sort_order: t.sort_order ?? i,
+    _is_replacement: true, // temp marker to distinguish new rows
   }))
 
+  // Use a timestamp marker to identify old rows before insert
+  const { data: oldRows } = await supabase
+    .from('lab_results')
+    .select('id')
+    .eq('lab_request_id', id)
+  const oldIds = (oldRows ?? []).map((r) => r.id)
+
+  const insertRows = testRows.map(({ _is_replacement: _, ...row }) => row)
   const { error: testsError } = await supabase
     .from('lab_results')
-    .insert(testRows)
+    .insert(insertRows)
 
   if (testsError) return { success: false, error: testsError.message }
+
+  // Only delete old rows after successful insert
+  if (oldIds.length > 0) {
+    await supabase.from('lab_results').delete().in('id', oldIds)
+  }
 
   revalidatePath('/lab')
   revalidatePath(`/lab/${id}`)

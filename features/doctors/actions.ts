@@ -108,6 +108,7 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
       last_name,
       phone: phone || null,
       email,
+      avatar_url: avatar_url || null,
     })
     .eq('id', doc.profile_id)
 
@@ -168,7 +169,7 @@ export async function deleteDoctor(id: string): Promise<ActionResult> {
     .select('id', { count: 'exact', head: true })
     .eq('doctor_id', id)
     .gte('scheduled_at', new Date().toISOString())
-    .not('status', 'in', '("cancelled","no_show")')
+    .not('status', 'in', '(cancelled,no_show)')
 
   if ((count ?? 0) > 0) {
     return { success: false, error: 'Doctor has upcoming appointments. Reassign or cancel them first.' }
