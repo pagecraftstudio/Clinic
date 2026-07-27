@@ -15,19 +15,19 @@
   :root {
     /* ── Shadcn/ui HSL tokens (required by tailwind.config.ts) ── */
     --background:         0 0% 97%;
-    --foreground:         220 25% 4%;
+    --foreground:         220 13% 7%;
     --card:               0 0% 100%;
-    --card-foreground:    220 25% 4%;
+    --card-foreground:    220 13% 7%;
     --popover:            0 0% 100%;
-    --popover-foreground: 220 25% 4%;
+    --popover-foreground: 220 13% 7%;
     --primary:            221 83% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary:          220 14% 96%;
-    --secondary-foreground: 220 25% 4%;
+    --secondary-foreground: 220 13% 7%;
     --muted:              220 14% 94%;
-    --muted-foreground:   220 9% 30%;
+    --muted-foreground:   220 9% 46%;
     --accent:             220 14% 94%;
-    --accent-foreground:  220 25% 4%;
+    --accent-foreground:  220 13% 7%;
     --destructive:        0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border:             220 13% 91%;
@@ -44,7 +44,7 @@
 
     /* Sidebar */
     --sidebar-bg:    #0F1117;
-    --sidebar-text:  #C8D0E0;
+    --sidebar-text:  #A1A8B8;
     --sidebar-active:#FFFFFF;
     --sidebar-hover: rgba(255,255,255,0.06);
     --sidebar-accent:#2563EB;
@@ -57,9 +57,9 @@
     --accent-border: #BFDBFE;
 
     /* Text */
-    --text-primary:  #0A0E17;
-    --text-secondary:#1F2937;
-    --text-muted:    #4B5563;
+    --text-primary:  #0D1117;
+    --text-secondary:#4B5563;
+    --text-muted:    #9CA3AF;
     --text-inverse:  #FFFFFF;
 
     /* Border */
@@ -104,19 +104,19 @@
   .dark {
     /* ── Shadcn/ui HSL tokens — dark ── */
     --background:         220 13% 5%;
-    --foreground:         210 30% 96%;
+    --foreground:         210 17% 90%;
     --card:               220 13% 9%;
-    --card-foreground:    210 30% 96%;
+    --card-foreground:    210 17% 90%;
     --popover:            220 13% 9%;
-    --popover-foreground: 210 30% 96%;
+    --popover-foreground: 210 17% 90%;
     --primary:            221 83% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary:          220 13% 13%;
-    --secondary-foreground: 210 30% 96%;
+    --secondary-foreground: 210 17% 90%;
     --muted:              220 13% 13%;
-    --muted-foreground:   220 9% 70%;
+    --muted-foreground:   220 9% 55%;
     --accent:             220 13% 13%;
-    --accent-foreground:  210 30% 96%;
+    --accent-foreground:  210 17% 90%;
     --destructive:        0 63% 51%;
     --destructive-foreground: 0 0% 100%;
     --border:             220 13% 19%;
@@ -133,9 +133,9 @@
     --sidebar-text:  #8B949E;
     --sidebar-hover: rgba(255,255,255,0.05);
 
-    --text-primary:  #F0F6FC;
-    --text-secondary:#CDD9E5;
-    --text-muted:    #9BA8B0;
+    --text-primary:  #E6EDF3;
+    --text-secondary:#8B949E;
+    --text-muted:    #6E7681;
 
     --border:        #30363D;
     --border-strong: #484F58;
