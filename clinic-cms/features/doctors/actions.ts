@@ -22,7 +22,7 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
   const { data: auth } = await supabase.auth.getUser()
 
   const {
-    first_name, last_name, display_name, phone, email, avatar_url,
+    first_name, last_name, phone, email, avatar_url,
     specialty, sub_specialty, license_number, consultation_fee,
     follow_up_fee, bio, is_active, accepts_online, working_hours,
   } = parsed.data
@@ -54,34 +54,44 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     if (authErr) return { success: false, error: authErr.message }
     if (!authData.user) return { success: false, error: 'User creation failed' }
     authUserId = authData.user.id
+
+    // Wait for handle_new_user trigger to create the profile row (up to 1.5s)
+    let profileExists = false
+    for (let i = 0; i < 5; i++) {
+      await new Promise((r) => setTimeout(r, 300))
+      const { data } = await admin.from('profiles').select('id').eq('id', authUserId).maybeSingle()
+      if (data) { profileExists = true; break }
+    }
+    if (!profileExists) {
+      await admin.auth.admin.deleteUser(authUserId)
+      return { success: false, error: 'Profile creation timed out. Please try again.' }
+    }
   }
 
-  // 2. Update the profile with doctor details
+  // 2. Upsert the profile with doctor details
+  // Note: display_name is GENERATED (first_name || last_name) — do NOT write it
   const { data: profile, error: profileErr } = await admin
     .from('profiles')
-    .update({
-      full_name: `${first_name} ${last_name}`.trim(),
-      display_name: display_name || `${first_name} ${last_name}`.trim(),
+    .upsert({
+      id: authUserId,
       first_name,
       last_name,
       phone: phone || null,
       email,
       avatar_url: avatar_url || null,
       role: 'doctor',
-    })
-    .eq('id', authUserId)
+    }, { onConflict: 'id' })
     .select('id')
     .single()
 
   if (profileErr) {
-    // Only roll back if we created a new user (don't delete a pre-existing account)
     if (!existingAuthUser) {
       await admin.auth.admin.deleteUser(authUserId)
     }
     return { success: false, error: profileErr.message }
   }
 
-  // 2. Create doctor record
+  // 3. Create doctor record
   const { data: doctor, error: doctorErr } = await supabase
     .from('doctors')
     .insert({
@@ -105,7 +115,7 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     action: 'doctor_created',
     table_name: 'doctors',
     record_id: doctor.id,
-    performed_by: auth.user?.id ?? null,
+    profile_id: auth.user?.id ?? null,
   })
 
   revalidatePath('/doctors')
@@ -123,7 +133,7 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
   const { data: auth } = await supabase.auth.getUser()
 
   const {
-    first_name, last_name, display_name, phone, email, avatar_url,
+    first_name, last_name, phone, email, avatar_url,
     specialty, sub_specialty, license_number, consultation_fee,
     follow_up_fee, bio, is_active, accepts_online, working_hours,
   } = parsed.data
@@ -138,11 +148,10 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
   if (!doc) return { success: false, error: 'Doctor not found' }
 
   // Update profile
+  // Note: display_name is GENERATED (first_name || last_name) — do NOT write it
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({
-      full_name: `${first_name} ${last_name}`.trim(),
-      display_name: display_name || `${first_name} ${last_name}`.trim(),
       first_name,
       last_name,
       phone: phone || null,
@@ -175,7 +184,7 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
     action: 'doctor_updated',
     table_name: 'doctors',
     record_id: id,
-    performed_by: auth.user?.id ?? null,
+    profile_id: auth.user?.id ?? null,
   })
 
   revalidatePath('/doctors')
@@ -225,7 +234,7 @@ export async function deleteDoctor(id: string): Promise<ActionResult> {
     action: 'doctor_deactivated',
     table_name: 'doctors',
     record_id: id,
-    performed_by: auth.user?.id ?? null,
+    profile_id: auth.user?.id ?? null,
   })
 
   revalidatePath('/doctors')
@@ -254,7 +263,7 @@ export async function createLeave(doctor_id: string, raw: unknown): Promise<Acti
     action: 'leave_created',
     table_name: 'doctor_leaves',
     record_id: data.id,
-    performed_by: auth.user?.id ?? null,
+    profile_id: auth.user?.id ?? null,
   })
 
   revalidatePath(`/doctors/${doctor_id}`)

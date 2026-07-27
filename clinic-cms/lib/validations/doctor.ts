@@ -27,7 +27,7 @@ export const doctorSchema = z.object({
   bio: z.string().max(2000).optional().nullable(),
   is_active: z.boolean().default(true),
   accepts_online: z.boolean().default(false),
-  working_hours: z.array(workingHoursSchema).length(7),
+  working_hours: z.array(workingHoursSchema).min(1, 'At least one working day required').max(7, 'Maximum 7 days'),
 })
 
 export type DoctorSchema = z.infer<typeof doctorSchema>

@@ -19,8 +19,17 @@ export async function getDoctors(filters: DoctorFilters = {}) {
   if (typeof accepts_online === 'boolean') query = query.eq('accepts_online', accepts_online)
   if (specialty) query = query.eq('specialty', specialty)
   if (search) {
+    // Search doctors table columns + join-filter on profiles name fields
     query = query.or(
-      `specialty.ilike.%${search}%,license_number.ilike.%${search}%,employee_number.ilike.%${search}%`
+      [
+        `specialty.ilike.%${search}%`,
+        `license_number.ilike.%${search}%`,
+        `employee_number.ilike.%${search}%`,
+        `profiles.first_name.ilike.%${search}%`,
+        `profiles.last_name.ilike.%${search}%`,
+        `profiles.display_name.ilike.%${search}%`,
+        `profiles.email.ilike.%${search}%`,
+      ].join(',')
     )
   }
 
