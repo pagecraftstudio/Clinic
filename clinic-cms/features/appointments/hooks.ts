@@ -96,7 +96,13 @@ function useAppointmentMutation<TArgs extends unknown[]>(
   return useMutation({
     mutationFn: (...args: TArgs) => fn(...args),
     onSuccess: () => {
-      if (invalidate) qc.invalidateQueries({ queryKey: ['appointments'] })
+      if (invalidate) {
+        qc.invalidateQueries({ queryKey: ['appointments'] })
+        // Keep reception page in sync — it uses separate query keys
+        qc.invalidateQueries({ queryKey: ['reception-today'] })
+        qc.invalidateQueries({ queryKey: ['reception-stats'] })
+        qc.invalidateQueries({ queryKey: ['reception-queue'] })
+      }
     },
   })
 }

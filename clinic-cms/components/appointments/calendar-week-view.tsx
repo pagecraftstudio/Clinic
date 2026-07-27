@@ -74,7 +74,7 @@ export function CalendarWeekView({ weekStart, appointments }: Props) {
       </div>
 
       {/* Scrollable grid */}
-      <div className="flex overflow-y-auto">
+      <div className="flex flex-1 overflow-y-auto min-h-0">
         {/* Hour labels */}
         <div className="w-16 flex-shrink-0">
           {hours.map(h => (

@@ -20,7 +20,7 @@ export default function DashboardLayout({
       {/* Main content shifts right only on md+ */}
       <div className="flex flex-1 flex-col overflow-hidden md:ml-[240px]">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto pt-16">
+        <main className="flex-1 flex flex-col min-h-0 pt-16 overflow-hidden">
           {children}
         </main>
       </div>
