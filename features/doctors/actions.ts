@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { doctorSchema, leaveSchema } from '@/lib/validations/doctor'
+import { randomUUID } from 'crypto'
 
 export interface ActionResult<T = undefined> {
   success: boolean
@@ -26,14 +27,17 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     follow_up_fee, bio, is_active, accepts_online, working_hours,
   } = parsed.data
 
-  // 1. Create profile
+  // 1. Create profile (profiles.id is a FK to auth.users with no default,
+  //    so doctors — who aren't auth users — need an explicit UUID)
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
     .insert({
+      id: randomUUID(),
       first_name,
       last_name,
       phone: phone || null,
       email,
+      role: 'doctor',
     })
     .select('id')
     .single()
