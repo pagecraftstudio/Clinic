@@ -30,12 +30,9 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
     .insert({
-      first_name,
-      last_name,
+      full_name: `${first_name} ${last_name}`.trim(),
       phone: phone || null,
       email,
-      avatar_url: avatar_url || null,
-      role: 'doctor',
     })
     .select('id')
     .single()
@@ -102,11 +99,9 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({
-      first_name,
-      last_name,
+      full_name: `${first_name} ${last_name}`.trim(),
       phone: phone || null,
       email,
-      avatar_url: avatar_url || null,
     })
     .eq('id', doc.profile_id)
 
