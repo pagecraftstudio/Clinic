@@ -104,6 +104,8 @@ export async function updateDoctor(id: string, raw: unknown): Promise<ActionResu
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({
+      full_name: `${first_name} ${last_name}`.trim(),
+      display_name: display_name || `${first_name} ${last_name}`.trim(),
       first_name,
       last_name,
       phone: phone || null,
