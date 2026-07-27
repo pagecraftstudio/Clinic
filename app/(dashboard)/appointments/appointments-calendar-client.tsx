@@ -221,7 +221,7 @@ export function AppointmentsCalendarClient() {
       )}
 
       {/* Calendar body */}
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white relative">
+      <div className="flex-1 overflow-hidden bg-white relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center">
             <div className="size-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />

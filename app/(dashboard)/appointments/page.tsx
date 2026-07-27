@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AppointmentsPage() {
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       <AppointmentsCalendarClient />
     </div>
   )

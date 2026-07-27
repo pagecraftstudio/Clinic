@@ -221,21 +221,21 @@ export function AppointmentsCalendarClient() {
       )}
 
       {/* Calendar body */}
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden bg-white relative">
+      <div className="flex-1 overflow-hidden bg-white relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/60 z-20 flex items-center justify-center">
             <div className="size-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
           </div>
         )}
 
-        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-hidden">
           {view === 'day' && (
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="h-full overflow-y-auto">
               <CalendarDayView date={current} appointments={appointments} />
             </div>
           )}
           {view === 'week' && (
-            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="h-full">
               <CalendarWeekView
                 weekStart={startOfWeek(current, { weekStartsOn: 0 })}
                 appointments={appointments}
@@ -243,7 +243,7 @@ export function AppointmentsCalendarClient() {
             </div>
           )}
           {view === 'month' && (
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="h-full overflow-y-auto">
               <CalendarMonthView
                 month={current}
                 appointments={appointments}
@@ -252,7 +252,7 @@ export function AppointmentsCalendarClient() {
             </div>
           )}
           {view === 'agenda' && (
-            <div className="flex-1 min-h-0 overflow-y-auto p-6">
+            <div className="h-full overflow-y-auto p-6">
               <CalendarAgendaView appointments={appointments} />
             </div>
           )}
