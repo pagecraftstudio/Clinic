@@ -27,16 +27,36 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
     follow_up_fee, bio, is_active, accepts_online, working_hours,
   } = parsed.data
 
-  // 1. Create auth user — this also triggers profile row creation via DB trigger
-  const { data: authData, error: authErr } = await admin.auth.admin.createUser({
-    email,
-    email_confirm: true,
-    user_metadata: { first_name, last_name },
-  })
-  if (authErr) return { success: false, error: authErr.message }
-  if (!authData.user) return { success: false, error: 'User creation failed' }
+  // 1. Check if a user with this email already exists in auth
+  const { data: existingUsers } = await admin.auth.admin.listUsers()
+  const existingAuthUser = existingUsers?.users?.find((u) => u.email === email)
 
-  // 2. Update the auto-created profile with full details
+  let authUserId: string
+
+  if (existingAuthUser) {
+    // Email already in auth.users — check if they already have a doctor record
+    const { data: existingDoctor } = await supabase
+      .from('doctors')
+      .select('id')
+      .eq('profile_id', existingAuthUser.id)
+      .maybeSingle()
+    if (existingDoctor) {
+      return { success: false, error: 'A doctor with this email already exists.' }
+    }
+    authUserId = existingAuthUser.id
+  } else {
+    // Create new auth user — trigger will auto-create the profile row
+    const { data: authData, error: authErr } = await admin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { first_name, last_name },
+    })
+    if (authErr) return { success: false, error: authErr.message }
+    if (!authData.user) return { success: false, error: 'User creation failed' }
+    authUserId = authData.user.id
+  }
+
+  // 2. Update the profile with doctor details
   const { data: profile, error: profileErr } = await admin
     .from('profiles')
     .update({
@@ -49,13 +69,15 @@ export async function createDoctor(raw: unknown): Promise<ActionResult<{ id: str
       avatar_url: avatar_url || null,
       role: 'doctor',
     })
-    .eq('id', authData.user.id)
+    .eq('id', authUserId)
     .select('id')
     .single()
 
   if (profileErr) {
-    // Roll back auth user to avoid orphan
-    await admin.auth.admin.deleteUser(authData.user.id)
+    // Only roll back if we created a new user (don't delete a pre-existing account)
+    if (!existingAuthUser) {
+      await admin.auth.admin.deleteUser(authUserId)
+    }
     return { success: false, error: profileErr.message }
   }
 
