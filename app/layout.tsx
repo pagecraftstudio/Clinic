@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning className="h-full overflow-hidden">
+      <body className={`${inter.className} h-full overflow-hidden`}>
         <Providers>
           {children}
           <Toaster richColors position="top-right" />

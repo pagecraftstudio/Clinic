@@ -24,7 +24,7 @@ export default async function VisitDetailPage({ params }: PageProps) {
   const isSigned = Boolean(visit.soap_note?.signed_at)
 
   return (
-    <div className="flex flex-col gap-0 h-full">
+    <div className="flex flex-col gap-0" style={{ height: "calc(100vh - 64px)" }}>
       <VisitHeader visit={visit} />
       <div className="flex flex-1 gap-0 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-6">

@@ -153,6 +153,16 @@
 @layer base {
   * { box-sizing: border-box; }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   html {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;

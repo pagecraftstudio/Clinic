@@ -18,7 +18,7 @@ export default async function SettingsLayout({ children }: { children: ReactNode
   if (!isAdmin) redirect('/')
 
   return (
-    <div className="flex flex-col gap-0 min-h-full">
+    <div className="flex flex-col gap-0">
       <div className="px-6 pt-6 pb-0 border-b border-white/[0.06]">
         <div className="mb-4">
           <h1 className="text-xl font-semibold text-white tracking-tight">Settings</h1>

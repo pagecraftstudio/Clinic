@@ -23,7 +23,7 @@ export function ReceptionClient() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 min-h-full">
+    <div className="flex flex-col gap-6 p-6">
       {/* Header */}
       <motion.div
         variants={fade}
