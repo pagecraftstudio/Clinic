@@ -88,7 +88,7 @@ export function ClinicSettingsClient({ settings }: Props) {
     setLogoUploading(true)
     const fd = new FormData()
     fd.append('logo', file)
-    const result = await uploadClinicLogo(fd)
+    const result = await uploadClinicLogo(settings?.id ?? '', fd)
     setLogoUploading(false)
     if (result.success && result.data) setLogoUrl(result.data.logo_url)
   }
@@ -96,8 +96,12 @@ export function ClinicSettingsClient({ settings }: Props) {
   function onSubmit(data: ClinicSettingsInput) {
     setError(null)
     setSuccess(false)
+    if (!settings?.id) {
+      setError('Settings not loaded — please refresh the page.')
+      return
+    }
     startTransition(async () => {
-      const result = await updateClinicSettings(data)
+      const result = await updateClinicSettings(settings.id, data)
       if (result.success) {
         setSuccess(true)
         setTimeout(() => setSuccess(false), 3000)

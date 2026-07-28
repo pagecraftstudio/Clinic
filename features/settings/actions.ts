@@ -18,7 +18,7 @@ export interface ActionResult<T = undefined> {
 
 // ── Clinic Settings ───────────────────────────────────────────────────────────
 
-export async function updateClinicSettings(raw: unknown): Promise<ActionResult> {
+export async function updateClinicSettings(id: string, raw: unknown): Promise<ActionResult> {
   const parsed = clinicSettingsSchema.safeParse(raw)
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
@@ -28,15 +28,16 @@ export async function updateClinicSettings(raw: unknown): Promise<ActionResult> 
   const { error } = await supabase
     .from('clinic_settings')
     .update(parsed.data)
-    .not('id', 'is', null)
+    .eq('id', id)
 
   if (error) return { success: false, error: error.message }
 
+  revalidatePath('/settings/clinic')
   revalidatePath('/settings')
   return { success: true }
 }
 
-export async function uploadClinicLogo(formData: FormData): Promise<ActionResult<{ logo_url: string }>> {
+export async function uploadClinicLogo(settingsId: string, formData: FormData): Promise<ActionResult<{ logo_url: string }>> {
   const supabase = await createClient()
   const file = formData.get('logo') as File
   if (!file) return { success: false, error: 'No file provided' }
@@ -55,10 +56,11 @@ export async function uploadClinicLogo(formData: FormData): Promise<ActionResult
   const { error: updateError } = await supabase
     .from('clinic_settings')
     .update({ logo_url: urlData.publicUrl })
-    .not('id', 'is', null)
+    .eq('id', settingsId)
 
   if (updateError) return { success: false, error: updateError.message }
 
+  revalidatePath('/settings/clinic')
   revalidatePath('/settings')
   return { success: true, data: { logo_url: urlData.publicUrl } }
 }
