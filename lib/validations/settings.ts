@@ -26,6 +26,8 @@ export const clinicSettingsSchema = z.object({
   invoice_prefix: z.string().min(1).max(10).default('INV'),
   invoice_notes: z.string().optional(),
   invoice_footer: z.string().optional(),
+  whatsapp_number: z.string().optional(),
+  whatsapp_enabled: z.boolean().default(false),
 })
 
 export const holidaySchema = z.object({

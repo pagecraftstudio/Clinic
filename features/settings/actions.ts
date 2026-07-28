@@ -34,6 +34,9 @@ export async function updateClinicSettings(id: string, raw: unknown): Promise<Ac
 
   revalidatePath('/settings/clinic')
   revalidatePath('/settings')
+  revalidatePath('/portal')
+  revalidatePath('/portal/appointments')
+  revalidatePath('/portal/bills')
   return { success: true }
 }
 
@@ -62,6 +65,7 @@ export async function uploadClinicLogo(settingsId: string, formData: FormData): 
 
   revalidatePath('/settings/clinic')
   revalidatePath('/settings')
+  revalidatePath('/portal')
   return { success: true, data: { logo_url: urlData.publicUrl } }
 }
 

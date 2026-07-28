@@ -5,6 +5,7 @@ import { Search, Bell, Sun, Moon, X, Menu } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
+import { useLang } from '@/lib/lang-context'
 
 interface TopbarProps {
   title?: string
@@ -13,6 +14,7 @@ interface TopbarProps {
 
 export function Topbar({ title, onMenuClick }: TopbarProps) {
   const { theme, setTheme } = useTheme()
+  const { lang, setLang } = useLang()
   const [mounted, setMounted] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -119,6 +121,16 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
             >
               ⌘K
             </kbd>
+          </button>
+
+          {/* Language switcher */}
+          <button
+            onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
+            className="h-8 px-2.5 rounded-lg flex items-center justify-center text-[12px] font-semibold transition-colors hover:bg-[var(--bg-subtle)]"
+            style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', minWidth: '2.5rem' }}
+            title={lang === 'en' ? 'Switch to Arabic' : 'التبديل للإنجليزية'}
+          >
+            {lang === 'en' ? 'ع' : 'EN'}
           </button>
 
           {/* Theme toggle */}

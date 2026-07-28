@@ -4,7 +4,7 @@ import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, Upload, Building2, Clock, Globe, Palette } from 'lucide-react'
+import { Save, Upload, Building2, Clock, Globe, Palette, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,6 +67,8 @@ export function ClinicSettingsClient({ settings }: Props) {
       working_hours_end: settings?.working_hours_end ?? '20:00',
       appointment_duration: settings?.appointment_duration ?? 30,
       primary_color: settings?.primary_color ?? '#0066FF',
+      whatsapp_number: settings?.whatsapp_number ?? '',
+      whatsapp_enabled: settings?.whatsapp_enabled ?? false,
       invoice_prefix: settings?.invoice_prefix ?? 'INV',
       invoice_notes: settings?.invoice_notes ?? '',
       invoice_footer: settings?.invoice_footer ?? '',
@@ -286,6 +288,39 @@ export function ClinicSettingsClient({ settings }: Props) {
                 className="w-10 h-10 rounded-lg border border-[var(--border)] cursor-pointer bg-transparent"
               />
               <Input {...register('primary_color')} placeholder="#0066FF" className={cn(inputCls, 'flex-1')} />
+            </div>
+          </Field>
+        </div>
+      </Section>
+
+      {/* WhatsApp */}
+      <Section icon={MessageCircle} title="WhatsApp Notifications">
+        <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          Enable WhatsApp contact so patients can reach you directly from the portal. A floating button and contact card will appear on the patient storefront.
+        </p>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <Field label="WhatsApp Number" className="col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] px-2 py-1.5 rounded-lg border" style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)', borderColor: 'var(--border)' }}>+</span>
+              <Input
+                {...register('whatsapp_number')}
+                placeholder="201001234567"
+                className={inputCls}
+              />
+            </div>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>International format without + (e.g. 201001234567)</p>
+          </Field>
+          <Field label="Show WhatsApp Button on Portal">
+            <div className="flex items-center gap-3 h-9">
+              <input
+                type="checkbox"
+                id="whatsapp_enabled"
+                {...register('whatsapp_enabled')}
+                className="w-4 h-4 rounded accent-blue-600"
+              />
+              <label htmlFor="whatsapp_enabled" className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
+                Show floating WhatsApp button
+              </label>
             </div>
           </Field>
         </div>

@@ -10,40 +10,43 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useLang } from '@/lib/lang-context'
 
-const NAV_GROUPS = [
-  {
-    label: 'Overview',
-    items: [
-      { href: '/',             icon: LayoutDashboard, label: 'Dashboard' },
-      { href: '/reception',    icon: ClipboardList,   label: 'Reception' },
-    ],
-  },
-  {
-    label: 'Clinical',
-    items: [
-      { href: '/patients',     icon: Users,           label: 'Patients' },
-      { href: '/appointments', icon: Calendar,        label: 'Appointments' },
-      { href: '/doctors',      icon: UserCog,         label: 'Doctors' },
-      { href: '/lab',          icon: FlaskConical,    label: 'Laboratory' },
-      { href: '/radiology',    icon: Scan,            label: 'Radiology' },
-    ],
-  },
-  {
-    label: 'Finance',
-    items: [
-      { href: '/billing',      icon: Receipt,         label: 'Billing' },
-      { href: '/inventory',    icon: Package,         label: 'Inventory' },
-    ],
-  },
-  {
-    label: 'Intelligence',
-    items: [
-      { href: '/ai',           icon: Sparkles,        label: 'AI Assistant' },
-      { href: '/reports',      icon: BarChart3,       label: 'Reports' },
-    ],
-  },
-]
+function getNavGroups(t: (en: string, ar: string) => string) {
+  return [
+    {
+      label: t('Overview', 'نظرة عامة'),
+      items: [
+        { href: '/',             icon: LayoutDashboard, label: t('Dashboard', 'لوحة التحكم') },
+        { href: '/reception',    icon: ClipboardList,   label: t('Reception', 'الاستقبال') },
+      ],
+    },
+    {
+      label: t('Clinical', 'سريري'),
+      items: [
+        { href: '/patients',     icon: Users,           label: t('Patients', 'المرضى') },
+        { href: '/appointments', icon: Calendar,        label: t('Appointments', 'المواعيد') },
+        { href: '/doctors',      icon: UserCog,         label: t('Doctors', 'الأطباء') },
+        { href: '/lab',          icon: FlaskConical,    label: t('Laboratory', 'المختبر') },
+        { href: '/radiology',    icon: Scan,            label: t('Radiology', 'الأشعة') },
+      ],
+    },
+    {
+      label: t('Finance', 'مالية'),
+      items: [
+        { href: '/billing',      icon: Receipt,         label: t('Billing', 'الفواتير') },
+        { href: '/inventory',    icon: Package,         label: t('Inventory', 'المخزون') },
+      ],
+    },
+    {
+      label: t('Intelligence', 'ذكاء اصطناعي'),
+      items: [
+        { href: '/ai',           icon: Sparkles,        label: t('AI Assistant', 'المساعد الذكي') },
+        { href: '/reports',      icon: BarChart3,       label: t('Reports', 'التقارير') },
+      ],
+    },
+  ]
+}
 
 interface SidebarProps {
   open?: boolean
@@ -53,6 +56,8 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
+  const { t } = useLang()
+  const NAV_GROUPS = getNavGroups(t)
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -75,7 +80,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white text-[13px] font-semibold leading-tight tracking-tight">Clinic CMS</p>
-          <p className="text-[11px] text-[#A1A8B8]">Management System</p>
+          <p className="text-[11px] text-[#A1A8B8]">{t('Management System', 'نظام الإدارة')}</p>
         </div>
         {/* Close button — mobile only */}
         {onClose && (
@@ -139,14 +144,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           className="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors"
         >
           <Settings size={16} />
-          Settings
+          {t('Settings', 'الإعدادات')}
         </Link>
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors text-left"
         >
           <LogOut size={16} />
-          Sign out
+          {t('Sign out', 'تسجيل الخروج')}
         </button>
       </div>
     </aside>

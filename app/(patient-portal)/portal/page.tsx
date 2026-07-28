@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { getPortalClinicSettings, getPortalDoctors, getPortalPatient } from '@/features/patient-portal/queries'
-import { Calendar, FileText, Clock, MapPin, Phone, Mail, ChevronRight, User } from 'lucide-react'
+import { Calendar, FileText, Clock, MapPin, Phone, Mail, ChevronRight, User, MessageCircle } from 'lucide-react'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -13,8 +12,12 @@ export default async function PatientPortalHome() {
   ])
 
   const workingDayLabels = clinic?.working_days
-    ? (clinic.working_days as number[]).map(d => DAYS[d]).join(', ')
+    ? (clinic.working_days as number[]).map((d: number) => DAYS[d]).join(', ')
     : 'Mon – Fri'
+
+  const whatsappUrl = clinic?.whatsapp_enabled && clinic?.whatsapp_number
+    ? `https://wa.me/${clinic.whatsapp_number.replace(/[^0-9]/g, '')}`
+    : null
 
   return (
     <div>
@@ -25,6 +28,16 @@ export default async function PatientPortalHome() {
         padding: '72px 24px 80px',
       }}>
         <div className="max-w-5xl mx-auto">
+          {/* Clinic name from settings */}
+          {clinic?.name && (
+            <div className="mb-4 flex items-center gap-2">
+              {clinic.logo_url && (
+                <img src={clinic.logo_url} alt="Logo" className="w-8 h-8 rounded-lg object-cover" />
+              )}
+              <span style={{ fontSize: 14, opacity: 0.7, fontWeight: 500 }}>{clinic.name}</span>
+            </div>
+          )}
+
           {patient && (
             <div className="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm"
               style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(4px)' }}>
@@ -60,6 +73,15 @@ export default async function PatientPortalHome() {
                 <FileText size={15} />
                 View my bills
               </Link>
+            )}
+            {/* WhatsApp CTA in hero */}
+            {whatsappUrl && (
+              <a href={whatsappUrl} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all hover:opacity-90"
+                style={{ background: '#25D366', color: 'white' }}>
+                <MessageCircle size={15} />
+                Chat on WhatsApp
+              </a>
             )}
           </div>
         </div>
@@ -164,9 +186,32 @@ export default async function PatientPortalHome() {
                   <a href={`mailto:${clinic.email}`} style={{ color: 'var(--accent)' }}>{clinic.email}</a>
                 </InfoCard>
               )}
+              {/* WhatsApp info card */}
+              {whatsappUrl && (
+                <InfoCard icon={MessageCircle} label="WhatsApp">
+                  <a href={whatsappUrl} target="_blank" rel="noreferrer" style={{ color: '#25D366' }}>
+                    {clinic.whatsapp_number}
+                  </a>
+                </InfoCard>
+              )}
             </div>
           </div>
         </section>
+      )}
+
+      {/* ── Floating WhatsApp button ── */}
+      {whatsappUrl && (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
+          style={{ background: '#25D366', color: 'white', fontSize: 13, fontWeight: 600 }}
+          title="Chat with us on WhatsApp"
+        >
+          <MessageCircle size={18} />
+          <span className="hidden sm:inline">WhatsApp us</span>
+        </a>
       )}
     </div>
   )

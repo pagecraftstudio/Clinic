@@ -29,6 +29,8 @@ export interface ClinicSettings {
   invoice_prefix: string
   invoice_notes: string | null
   invoice_footer: string | null
+  whatsapp_number: string | null
+  whatsapp_enabled: boolean
   created_at: string
   updated_at: string
 }
@@ -59,6 +61,8 @@ export interface ClinicSettingsInput {
   invoice_prefix?: string
   invoice_notes?: string
   invoice_footer?: string
+  whatsapp_number?: string
+  whatsapp_enabled?: boolean
 }
 
 export interface Holiday {

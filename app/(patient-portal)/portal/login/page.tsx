@@ -127,7 +127,7 @@ export default function PatientLoginPage() {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>
-          Staff login? <Link href="/login" style={{ color: 'var(--accent)' }}>Go to clinic CMS</Link>
+          Don&apos;t have an account? <Link href="/portal/register" style={{ color: 'var(--accent)' }}>Register</Link>
         </p>
       </div>
     </div>

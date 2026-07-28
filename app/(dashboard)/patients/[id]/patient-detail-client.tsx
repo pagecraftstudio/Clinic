@@ -25,11 +25,11 @@ interface Props {
 }
 
 const QUICK_LINKS = [
-  { label: 'EMR', icon: Stethoscope, suffix: 'emr' },
-  { label: 'Prescriptions', icon: Pill, suffix: 'prescriptions' },
-  { label: 'Billing', icon: Receipt, suffix: 'billing' },
-  { label: 'Lab', icon: FlaskConical, suffix: 'lab' },
-  { label: 'Radiology', icon: Scan, suffix: 'radiology' },
+  { label: 'EMR', icon: Stethoscope, href: '/emr' },
+  { label: 'Prescriptions', icon: Pill, href: '/prescriptions' },
+  { label: 'Billing', icon: Receipt, href: '/billing' },
+  { label: 'Lab', icon: FlaskConical, href: '/lab' },
+  { label: 'Radiology', icon: Scan, href: '/radiology' },
 ]
 
 export function PatientDetailClient({ patient, contacts, documents, timeline }: Props) {
@@ -77,10 +77,10 @@ export function PatientDetailClient({ patient, contacts, documents, timeline }: 
 
       {/* Quick links to other modules */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {QUICK_LINKS.map(({ label, icon: Icon, suffix }) => (
+        {QUICK_LINKS.map(({ label, icon: Icon, href }) => (
           <Link
-            key={suffix}
-            href={`/patients/${patient.id}/${suffix}`}
+            key={href}
+            href={href}
             className="rounded-xl p-4 flex flex-col items-center gap-2 text-center hover:shadow-[var(--shadow-md)] transition-shadow"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
