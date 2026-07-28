@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { appointmentSchema, rescheduleSchema, cancelSchema } from '@/lib/validations/appointment'
+import { requireActiveClinicId } from '@/lib/clinic-context'
+import { appointmentSchema } from '@/lib/validations/appointment'
 
 export interface ActionResult<T = undefined> {
   success: boolean
@@ -10,174 +11,56 @@ export interface ActionResult<T = undefined> {
   data?: T
 }
 
-// ── Create ──────────────────────────────────────────────────
 export async function createAppointment(raw: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = appointmentSchema.safeParse(raw)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
-  }
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
 
-  const supabase = await createClient()
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
   const { data: auth } = await supabase.auth.getUser()
 
   const { data, error } = await supabase
     .from('appointments')
-    .insert({
-      ...parsed.data,
-      online_link: parsed.data.online_link || null,
-      booked_by: auth.user?.id ?? null,
-      status: 'scheduled',
-    })
+    .insert({ ...parsed.data, clinic_id: clinicId, created_by: auth.user?.id })
     .select('id')
     .single()
 
   if (error) return { success: false, error: error.message }
 
-  await supabase.from('audit_logs').insert({
-    action: 'appointment_created',
-    table_name: 'appointments',
-    record_id: data.id,
-    performed_by: auth.user?.id ?? null,
-  })
-
   revalidatePath('/appointments')
+  revalidatePath('/reception')
   return { success: true, data: { id: data.id } }
 }
 
-// ── Update ───────────────────────────────────────────────────
 export async function updateAppointment(id: string, raw: unknown): Promise<ActionResult> {
-  const parsed = appointmentSchema.safeParse(raw)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
-  }
+  const parsed = appointmentSchema.partial().safeParse(raw)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
 
-  const supabase = await createClient()
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
   const { error } = await supabase
     .from('appointments')
-    .update({ ...parsed.data, online_link: parsed.data.online_link || null })
+    .update(parsed.data)
     .eq('id', id)
-    .is('deleted_at', null)
+    .eq('clinic_id', clinicId)
 
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/appointments')
   revalidatePath(`/appointments/${id}`)
+  revalidatePath('/reception')
   return { success: true }
 }
 
-// ── Status transitions ───────────────────────────────────────
-export async function checkInAppointment(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
+export async function cancelAppointment(id: string, reason?: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
   const { error } = await supabase
     .from('appointments')
-    .update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+    .update({ status: 'cancelled', cancellation_reason: reason ?? null })
     .eq('id', id)
+    .eq('clinic_id', clinicId)
 
   if (error) return { success: false, error: error.message }
+
   revalidatePath('/appointments')
-  return { success: true }
-}
-
-export async function startAppointment(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ status: 'in_progress' })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  return { success: true }
-}
-
-export async function completeAppointment(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ status: 'completed', checked_out_at: new Date().toISOString() })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  revalidatePath(`/appointments/${id}`)
-  return { success: true }
-}
-
-export async function markNoShow(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ status: 'no_show' })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  return { success: true }
-}
-
-export async function confirmAppointment(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ status: 'confirmed' })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  return { success: true }
-}
-
-// ── Reschedule ───────────────────────────────────────────────
-export async function rescheduleAppointment(id: string, raw: unknown): Promise<ActionResult> {
-  const parsed = rescheduleSchema.safeParse(raw)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ ...parsed.data, status: 'rescheduled' })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  revalidatePath(`/appointments/${id}`)
-  return { success: true }
-}
-
-// ── Cancel ───────────────────────────────────────────────────
-export async function cancelAppointment(id: string, raw: unknown): Promise<ActionResult> {
-  const parsed = cancelSchema.safeParse(raw)
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({
-      status: 'cancelled',
-      cancelled_at: new Date().toISOString(),
-      cancellation_reason: parsed.data.cancellation_reason,
-    })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
-  revalidatePath(`/appointments/${id}`)
-  return { success: true }
-}
-
-// ── Soft delete ──────────────────────────────────────────────
-export async function deleteAppointment(id: string): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('appointments')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', id)
-
-  if (error) return { success: false, error: error.message }
-  revalidatePath('/appointments')
+  revalidatePath('/reception')
   return { success: true }
 }

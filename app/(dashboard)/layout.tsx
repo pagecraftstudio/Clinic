@@ -1,21 +1,33 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveClinicId } from '@/lib/clinic-context'
 import { DashboardShell } from './dashboard-shell'
 
-// Server component — runs on Node.js runtime where supabase-js works.
-// Validates the session token (not just cookie presence) and redirects
-// unauthenticated or expired sessions to /login before rendering anything.
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  if (!user) redirect('/login')
 
-  return <DashboardShell>{children}</DashboardShell>
+  const clinicId = await getActiveClinicId()
+  if (!clinicId) redirect('/onboarding/clinic')
+
+  // Fetch active clinic info for shell
+  const { data: clinic } = await supabase
+    .from('clinics')
+    .select('id, name, logo_url, primary_color')
+    .eq('id', clinicId)
+    .single()
+
+  if (!clinic) redirect('/onboarding/clinic')
+
+  return (
+    <DashboardShell
+      activeClinicId={clinic.id}
+      activeClinicName={clinic.name}
+      activeClinicLogo={clinic.logo_url}
+    >
+      {children}
+    </DashboardShell>
+  )
 }
