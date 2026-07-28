@@ -23,20 +23,16 @@ export function AIChatClient() {
   } = useAIChat()
 
   function handleSend(message: string) {
-    // If no active conversation, create one
+    // Pass the current messages so sendMessage has fresh history even when
+    // it creates a new conversation (state update isn't flushed yet).
     const id = activeId ?? undefined
-    sendMessage(message, id)
-
-    // Set active to whatever was created/used
-    if (!activeId) {
-      // The hook will create and set, but we need the returned id
-      // This is handled inside sendMessage → newConversation
-    }
+    const prior = activeConversation?.messages ?? []
+    sendMessage(message, id, prior)
   }
 
   function handlePrompt(prompt: string) {
     const id = newConversation()
-    sendMessage(prompt, id)
+    sendMessage(prompt, id, [])
     setActiveId(id)
   }
 

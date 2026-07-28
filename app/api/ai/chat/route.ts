@@ -233,10 +233,19 @@ export async function POST(req: NextRequest) {
               continue
             }
 
-            // No tool calls — stream this response
+            // No tool calls — send whatever content we have and stop
             if (choice?.finish_reason === 'stop' && msg?.content) {
               // Send as single chunk
               send(JSON.stringify({ type: 'text', content: msg.content }))
+              send(JSON.stringify({ type: 'done' }))
+              break
+            }
+
+            // Unexpected finish_reason (e.g. 'length', 'content_filter') —
+            // send whatever partial content exists so the client isn't left
+            // hanging, then stop rather than burning remaining iterations.
+            if (choice?.finish_reason && choice.finish_reason !== 'tool_calls') {
+              if (msg?.content) send(JSON.stringify({ type: 'text', content: msg.content }))
               send(JSON.stringify({ type: 'done' }))
               break
             }

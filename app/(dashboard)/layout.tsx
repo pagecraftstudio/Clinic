@@ -1,29 +1,21 @@
-'use client'
-import { useState } from 'react'
 import { redirect } from 'next/navigation'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Topbar } from '@/components/layout/topbar'
+import { createClient } from '@/lib/supabase/server'
+import { DashboardShell } from './dashboard-shell'
 
-// Note: auth check must stay server-side — keep that in a parent server component
-// or use middleware. This layout is now a client component to manage drawer state.
-
-export default function DashboardLayout({
+// Server component — runs on Node.js runtime where supabase-js works.
+// Validates the session token (not just cookie presence) and redirects
+// unauthenticated or expired sessions to /login before rendering anything.
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      {/* Main content shifts right only on md+ */}
-      <div className="flex flex-1 flex-col overflow-hidden md:ml-[240px]">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto pt-16">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+  if (!user) {
+    redirect('/login')
+  }
+
+  return <DashboardShell>{children}</DashboardShell>
 }

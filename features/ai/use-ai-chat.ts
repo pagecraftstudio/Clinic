@@ -54,7 +54,7 @@ export function useAIChat() {
     )
   }, [])
 
-  const sendMessage = useCallback(async (content: string, convId?: string) => {
+  const sendMessage = useCallback(async (content: string, convId?: string, priorMessages: ChatMessage[] = []) => {
     const id = convId ?? newConversation()
     const userMsg = makeMessage('user', content)
 
@@ -85,10 +85,13 @@ export function useAIChat() {
     abortRef.current = new AbortController()
 
     try {
-      // Build messages array for API (exclude current streaming placeholder)
-      const conv = conversations.find(c => c.id === id) ?? { messages: [] }
+      // Build messages array for the API from the prior history for this
+      // conversation. We cannot read `conversations` here — it is stale
+      // (the new conversation and user message were added via queued state
+      // updates which haven't flushed yet). Instead we pass the prior
+      // messages in as a parameter so the closure captures fresh data.
       const apiMessages = [
-        ...conv.messages.map(m => ({ role: m.role, content: m.content })),
+        ...priorMessages.map(m => ({ role: m.role, content: m.content })),
         { role: 'user' as const, content },
       ]
 
@@ -188,7 +191,7 @@ export function useAIChat() {
         )
       )
     }
-  }, [conversations, newConversation, updateMessages])
+  }, [newConversation, updateMessages])
 
   const stopStreaming = useCallback(() => {
     abortRef.current?.abort()

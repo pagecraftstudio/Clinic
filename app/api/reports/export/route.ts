@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import {
   getRevenueReport,
   getAppointmentsReport,
@@ -130,6 +131,10 @@ function buildCSV(tab: string, data: any): string {
 }
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = req.nextUrl
   const tab = searchParams.get('tab') ?? 'revenue'
   const from = searchParams.get('from') ?? ''

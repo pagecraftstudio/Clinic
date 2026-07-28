@@ -16,6 +16,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 // /settings/users. Only login and password-reset are public.
 const PUBLIC_ROUTES = ['/login', '/register', '/reset-password']
 
+// Patient portal has its own login page that must be publicly accessible.
+// These routes are exempt from the staff-session check entirely.
+const PORTAL_PUBLIC_ROUTES = ['/portal/login']
+
 // IMPORTANT: this file runs on Vercel's Edge Runtime, which does not
 // support Node.js APIs. @supabase/supabase-js (pulled in via
 // @supabase/ssr's createServerClient) touches `process.version`
@@ -38,9 +42,16 @@ function hasSupabaseSessionCookie(request: NextRequest): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  const isPublicRoute = PUBLIC_ROUTES.some((r) =>
-    request.nextUrl.pathname.startsWith(r)
+  const { pathname } = request.nextUrl
+
+  // Portal public routes (e.g. /portal/login) are fully exempt — patients
+  // have no staff session cookie and must be able to reach their own login.
+  const isPortalPublicRoute = PORTAL_PUBLIC_ROUTES.some((r) =>
+    pathname.startsWith(r)
   )
+  if (isPortalPublicRoute) return NextResponse.next()
+
+  const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
   const hasSession = hasSupabaseSessionCookie(request)
 
   // No session cookie at all, and hitting a protected route → bounce to
@@ -49,7 +60,7 @@ export function middleware(request: NextRequest) {
   if (!hasSession && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    url.searchParams.set('redirectTo', request.nextUrl.pathname)
+    url.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(url)
   }
 
