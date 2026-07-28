@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, Receipt, Eye } from 'lucide-react'
@@ -16,6 +17,7 @@ import type { ClinicSettings } from '@/types/settings'
 interface Props { settings: ClinicSettings | null }
 
 export function InvoiceSettingsClient({ settings }: Props) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -52,6 +54,7 @@ export function InvoiceSettingsClient({ settings }: Props) {
       const result = await updateClinicSettings(merged)
       if (result.success) {
         setSuccess(true)
+        router.refresh()
         setTimeout(() => setSuccess(false), 3000)
       } else {
         setError(result.error ?? 'Failed to save')
