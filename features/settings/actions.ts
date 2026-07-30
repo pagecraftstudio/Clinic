@@ -26,7 +26,7 @@ export async function updateClinicSettings(id: string, raw: unknown): Promise<Ac
 
   const supabase = await createClient()
   const { error } = await supabase
-    .from('clinic_settings')
+    .from('clinics')
     .update(parsed.data)
     .eq('id', id)
 
@@ -57,7 +57,7 @@ export async function uploadClinicLogo(settingsId: string, formData: FormData): 
   const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
 
   const { error: updateError } = await supabase
-    .from('clinic_settings')
+    .from('clinics')
     .update({ logo_url: urlData.publicUrl })
     .eq('id', settingsId)
 

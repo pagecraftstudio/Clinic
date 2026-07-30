@@ -675,6 +675,50 @@ export interface Database {
           { foreignKeyName: 'stock_movements_performed_by_fkey', columns: ['performed_by'], isOneToOne: false, referencedRelation: 'profiles', referencedColumns: ['id'] },
         ]
       }
+      clinics: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          name_ar: string | null
+          logo_url: string | null
+          tagline: string | null
+          tagline_ar: string | null
+          phone: string | null
+          phone_alt: string | null
+          email: string | null
+          address: string | null
+          address_ar: string | null
+          city: string | null
+          country: string
+          tax_number: string | null
+          license_number: string | null
+          currency: string
+          timezone: string
+          date_format: string
+          time_format: string
+          working_days: number[]
+          working_hours_start: string
+          working_hours_end: string
+          appointment_duration: number
+          primary_color: string
+          theme: string
+          invoice_prefix: string
+          invoice_notes: string | null
+          invoice_footer: string | null
+          whatsapp_number: string | null
+          whatsapp_enabled: boolean
+          is_active: boolean
+          owner_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: Partial<Omit<Database['public']['Tables']['clinics']['Row'], 'id' | 'created_at' | 'updated_at'>>
+        Update: Partial<Database['public']['Tables']['clinics']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'clinics_owner_id_fkey', columns: ['owner_id'], isOneToOne: false, referencedRelation: 'users', referencedColumns: ['id'] },
+        ]
+      }
       clinic_settings: {
         Row: {
           id: string

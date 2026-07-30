@@ -17,7 +17,7 @@ export function useClinicSettings() {
     queryKey: ['clinic-settings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('clinic_settings')
+        .from('clinics')
         .select('*')
         .limit(1)
         .single()

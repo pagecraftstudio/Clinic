@@ -98,7 +98,7 @@ export async function getPatientInvoices(patientId: string) {
 export async function getPortalClinicSettings() {
   const supabase = await createClient()
   const { data } = await supabase
-    .from('clinic_settings')
+    .from('clinics')
     .select('name, name_ar, tagline, tagline_ar, phone, phone_alt, email, address, address_ar, city, logo_url, working_hours_start, working_hours_end, working_days, primary_color, whatsapp_number, whatsapp_enabled')
     .limit(1)
     .single()

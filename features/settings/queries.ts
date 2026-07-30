@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 export async function getClinicSettings() {
   const supabase = await createClient()
   const { data, error } = await supabase
-    .from('clinic_settings')
+    .from('clinics')
     .select('*')
     .limit(1)
     .single()
