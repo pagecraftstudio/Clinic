@@ -100,7 +100,23 @@ export default function PatientRegisterPage() {
         return
       }
 
-      // 2. Resolve clinic_id — fetch first available clinic
+      // 2. Wait for DB trigger to create profile row (avoid FK race)
+      let profileExists = false
+      for (let i = 0; i < 10; i++) {
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle()
+        if (p) { profileExists = true; break }
+        await new Promise(r => setTimeout(r, 300))
+      }
+      if (!profileExists) {
+        setError('Account setup timed out. Please try signing in.')
+        return
+      }
+
+      // 3. Resolve clinic_id — fetch first available clinic
       const { data: clinicData } = await supabase
         .from('clinics')
         .select('id')
@@ -111,7 +127,7 @@ export default function PatientRegisterPage() {
 
       const clinicId = clinicData?.id ?? '00000000-0000-0000-0000-000000000001'
 
-      // 3. Insert patient record linked to profile
+      // 4. Insert patient record linked to profile
       const { error: patientError } = await supabase
         .from('patients')
         .insert({
