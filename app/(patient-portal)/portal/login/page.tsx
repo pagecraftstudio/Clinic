@@ -22,8 +22,7 @@ export default function PatientLoginPage() {
     startTransition(async () => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) { setError(error.message); return }
-      router.push('/portal')
-      router.refresh()
+      window.location.href = '/portal'
     })
   }
 

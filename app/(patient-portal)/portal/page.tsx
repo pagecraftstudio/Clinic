@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { getPortalClinicSettings, getPortalDoctors, getPortalPatient } from '@/features/patient-portal/queries'
 import { Calendar, FileText, Clock, MapPin, Phone, Mail, ChevronRight, User, MessageCircle } from 'lucide-react'
