@@ -1,13 +1,17 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 // ── Patient identity ──────────────────────────────────────────────────────────
 
 export async function getPortalPatient() {
+  // Get the current user from the regular client (validates session)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data } = await supabase
+  // Use admin client to fetch patient record — bypasses RLS so patients
+  // can always read their own row regardless of role/policy state
+  const admin = await createAdminClient()
+  const { data } = await admin
     .from('patients')
     .select('id, full_name, patient_number, phone, date_of_birth, gender, blood_group, allergies')
     .eq('profile_id', user.id)
@@ -19,8 +23,9 @@ export async function getPortalPatient() {
 // ── Doctors list (public — for booking) ──────────────────────────────────────
 
 export async function getPortalDoctors() {
-  const supabase = await createClient()
-  const { data } = await supabase
+  // Admin client so unauthenticated / patient users can see doctors list
+  const admin = await createAdminClient()
+  const { data } = await admin
     .from('doctors')
     .select(`
       id,
@@ -40,8 +45,8 @@ export async function getPortalDoctors() {
 // ── Appointments for current patient ─────────────────────────────────────────
 
 export async function getPatientAppointments(patientId: string) {
-  const supabase = await createClient()
-  const { data } = await supabase
+  const admin = await createAdminClient()
+  const { data } = await admin
     .from('appointments')
     .select(`
       id,
@@ -70,8 +75,8 @@ export async function getPatientAppointments(patientId: string) {
 // ── Bills / invoices for current patient ─────────────────────────────────────
 
 export async function getPatientInvoices(patientId: string) {
-  const supabase = await createClient()
-  const { data } = await supabase
+  const admin = await createAdminClient()
+  const { data } = await admin
     .from('invoices')
     .select(`
       id,
@@ -96,8 +101,9 @@ export async function getPatientInvoices(patientId: string) {
 // ── Clinic settings (public — for landing page) ───────────────────────────────
 
 export async function getPortalClinicSettings() {
-  const supabase = await createClient()
-  const { data } = await supabase
+  // Admin client so patients and unauthenticated visitors can see clinic info
+  const admin = await createAdminClient()
+  const { data } = await admin
     .from('clinics')
     .select('name, name_ar, tagline, tagline_ar, phone, phone_alt, email, address, address_ar, city, logo_url, working_hours_start, working_hours_end, working_days, primary_color, whatsapp_number, whatsapp_enabled')
     .limit(1)

@@ -6,6 +6,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { registerPatient } from '@/features/patient-portal/actions'
 import { Activity, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
 type Step = 'account' | 'personal'
@@ -13,13 +14,11 @@ type Step = 'account' | 'personal'
 export default function PatientRegisterPage() {
   const [step, setStep] = useState<Step>('account')
 
-  // Account fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
-  // Personal fields
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState('')
@@ -55,14 +54,8 @@ export default function PatientRegisterPage() {
   function handleAccountNext(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.')
-      return
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
-    }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return }
     setStep('personal')
   }
 
@@ -76,93 +69,37 @@ export default function PatientRegisterPage() {
     }
 
     startTransition(async () => {
-      // 1. Sign up with Supabase Auth
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      // 1. Register via server action (uses admin client — bypasses RLS)
+      const result = await registerPatient({
         email,
         password,
-        options: {
-          data: {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-            role: 'patient',
-          },
-        },
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+        dateOfBirth: dateOfBirth || undefined,
+        gender: gender || undefined,
       })
 
-      if (signUpError) {
-        setError(signUpError.message)
+      if (!result.success) {
+        setError(result.error ?? 'Registration failed.')
         return
       }
 
-      const userId = authData.user?.id
-      if (!userId) {
-        setError('Registration failed. Please try again.')
+      // 2. Sign in on the client so session cookie is set
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError('Account created! Please sign in.')
+        router.push('/portal/login')
         return
       }
 
-      // 2. Wait for DB trigger to create profile row (avoid FK race)
-      let profileExists = false
-      for (let i = 0; i < 10; i++) {
-        const { data: p } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle()
-        if (p) { profileExists = true; break }
-        await new Promise(r => setTimeout(r, 300))
-      }
-      if (!profileExists) {
-        setError('Account setup timed out. Please try signing in.')
-        return
-      }
-
-      // 3. Resolve clinic_id — fetch first available clinic
-      const { data: clinicData } = await supabase
-        .from('clinics')
-        .select('id')
-        .eq('is_active', true)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .single()
-
-      const clinicId = clinicData?.id ?? '00000000-0000-0000-0000-000000000001'
-
-      // 4. Insert patient record linked to profile
-      const { error: patientError } = await supabase
-        .from('patients')
-        .insert({
-          profile_id: userId,
-          clinic_id: clinicId,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone: phone.trim(),
-          email,
-          date_of_birth: dateOfBirth || null,
-          gender: gender || null,
-          blood_group: 'unknown',
-          country: 'Egypt',
-          language_pref: 'ar',
-          is_active: true,
-        })
-
-      if (patientError) {
-        // Only swallow true duplicate-key errors (patient already exists for this profile)
-        const isDuplicate = patientError.message.includes('duplicate') || patientError.message.includes('unique')
-        if (!isDuplicate) {
-          setError(patientError.message)
-          return
-        }
-      }
-
-      router.push('/portal')
-      router.refresh()
+      window.location.href = '/portal'
     })
   }
 
   return (
     <div className="min-h-[calc(100vh-56px)] flex items-center justify-center px-4 py-12">
       <div style={{ width: '100%', maxWidth: 400 }}>
-        {/* Back link */}
         <Link
           href="/portal/login"
           className="inline-flex items-center gap-1.5 text-sm mb-6 transition-colors hover:text-[var(--accent)]"
@@ -171,7 +108,6 @@ export default function PatientRegisterPage() {
           <ArrowLeft size={13} /> Back to sign in
         </Link>
 
-        {/* Card */}
         <div
           className="rounded-2xl p-6"
           style={{
@@ -180,7 +116,6 @@ export default function PatientRegisterPage() {
             boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
           }}
         >
-          {/* Logo */}
           <div className="flex flex-col items-center mb-6">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
@@ -196,14 +131,14 @@ export default function PatientRegisterPage() {
 
           {/* Step indicator */}
           <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
-            {(['account', 'personal'] as Step[]).map((s, i) => (
+            {(['account', 'personal'] as Step[]).map((s) => (
               <div
                 key={s}
                 style={{
                   flex: 1,
                   height: 3,
                   borderRadius: 99,
-                  background: step === s || (s === 'account') ? 'var(--accent)' : 'var(--border)',
+                  background: step === s || s === 'account' ? 'var(--accent)' : 'var(--border)',
                   opacity: s === 'personal' && step === 'account' ? 0.3 : 1,
                   transition: 'opacity 0.2s',
                 }}
@@ -227,7 +162,6 @@ export default function PatientRegisterPage() {
                   onBlur={e => (e.target.style.borderColor = 'var(--border)')}
                 />
               </div>
-
               <div>
                 <label style={labelStyle}>Password</label>
                 <div style={{ position: 'relative' }}>
@@ -245,23 +179,15 @@ export default function PatientRegisterPage() {
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
                     style={{
-                      position: 'absolute',
-                      right: 10,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--text-muted)',
-                      padding: 0,
-                      display: 'flex',
+                      position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--text-muted)', padding: 0, display: 'flex',
                     }}
                   >
                     {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
-
               <div>
                 <label style={labelStyle}>Confirm password</label>
                 <input
@@ -276,15 +202,7 @@ export default function PatientRegisterPage() {
               </div>
 
               {error && (
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--danger)',
-                    padding: '8px 12px',
-                    background: 'var(--danger-light)',
-                    borderRadius: 8,
-                  }}
-                >
+                <div style={{ fontSize: 13, color: 'var(--danger)', padding: '8px 12px', background: 'var(--danger-light)', borderRadius: 8 }}>
                   {error}
                 </div>
               )}
@@ -292,16 +210,9 @@ export default function PatientRegisterPage() {
               <button
                 type="submit"
                 style={{
-                  width: '100%',
-                  padding: '10px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'var(--accent)',
-                  color: 'white',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s',
+                  width: '100%', padding: '10px', borderRadius: 8, border: 'none',
+                  background: 'var(--accent)', color: 'white', fontSize: 14,
+                  fontWeight: 500, cursor: 'pointer', transition: 'opacity 0.15s',
                 }}
               >
                 Continue
@@ -386,15 +297,7 @@ export default function PatientRegisterPage() {
               </div>
 
               {error && (
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--danger)',
-                    padding: '8px 12px',
-                    background: 'var(--danger-light)',
-                    borderRadius: 8,
-                  }}
-                >
+                <div style={{ fontSize: 13, color: 'var(--danger)', padding: '8px 12px', background: 'var(--danger-light)', borderRadius: 8 }}>
                   {error}
                 </div>
               )}
@@ -404,15 +307,9 @@ export default function PatientRegisterPage() {
                   type="button"
                   onClick={() => { setStep('account'); setError(null) }}
                   style={{
-                    flex: 1,
-                    padding: '10px',
-                    borderRadius: 8,
-                    border: '1px solid var(--border)',
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: 'pointer',
+                    flex: 1, padding: '10px', borderRadius: 8,
+                    border: '1px solid var(--border)', background: 'transparent',
+                    color: 'var(--text-primary)', fontSize: 14, fontWeight: 500, cursor: 'pointer',
                   }}
                 >
                   Back
@@ -421,20 +318,11 @@ export default function PatientRegisterPage() {
                   type="submit"
                   disabled={isPending}
                   style={{
-                    flex: 2,
-                    padding: '10px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: 'var(--accent)',
-                    color: 'white',
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: isPending ? 'not-allowed' : 'pointer',
+                    flex: 2, padding: '10px', borderRadius: 8, border: 'none',
+                    background: 'var(--accent)', color: 'white', fontSize: 14,
+                    fontWeight: 500, cursor: isPending ? 'not-allowed' : 'pointer',
                     opacity: isPending ? 0.7 : 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     transition: 'opacity 0.15s',
                   }}
                 >
