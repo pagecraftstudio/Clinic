@@ -100,24 +100,7 @@ export default function PatientRegisterPage() {
         return
       }
 
-      // 2. Upsert profile row (may be created by DB trigger; upsert is safe)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          role: 'patient',
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          email,
-          phone: phone.trim() || null,
-        })
-
-      if (profileError) {
-        setError(profileError.message)
-        return
-      }
-
-      // 3. Insert patient record linked to profile
+      // 2. Insert patient record linked to profile
       const { error: patientError } = await supabase
         .from('patients')
         .insert({
