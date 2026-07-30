@@ -100,11 +100,23 @@ export default function PatientRegisterPage() {
         return
       }
 
-      // 2. Insert patient record linked to profile
+      // 2. Resolve clinic_id — fetch first available clinic
+      const { data: clinicData } = await supabase
+        .from('clinics')
+        .select('id')
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .single()
+
+      const clinicId = clinicData?.id ?? '00000000-0000-0000-0000-000000000001'
+
+      // 3. Insert patient record linked to profile
       const { error: patientError } = await supabase
         .from('patients')
         .insert({
           profile_id: userId,
+          clinic_id: clinicId,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           phone: phone.trim(),
