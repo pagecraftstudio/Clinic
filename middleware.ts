@@ -16,9 +16,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 // /settings/users. Only login and password-reset are public.
 const PUBLIC_ROUTES = ['/login', '/register', '/reset-password']
 
-// Patient portal has its own login page that must be publicly accessible.
-// These routes are exempt from the staff-session check entirely.
-const PORTAL_PUBLIC_ROUTES = ['/portal/login']
+// ALL portal routes are fully exempt from the staff-session check.
+// The patient portal manages its own auth — patients have a Supabase
+// session but no staff profile/role, so running the staff cookie check
+// against them would always fail and redirect them to /login.
+const PORTAL_ROUTES = ['/portal']
 
 // IMPORTANT: this file runs on Vercel's Edge Runtime, which does not
 // support Node.js APIs. @supabase/supabase-js (pulled in via
@@ -44,12 +46,11 @@ function hasSupabaseSessionCookie(request: NextRequest): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Portal public routes (e.g. /portal/login) are fully exempt — patients
-  // have no staff session cookie and must be able to reach their own login.
-  const isPortalPublicRoute = PORTAL_PUBLIC_ROUTES.some((r) =>
-    pathname.startsWith(r)
-  )
-  if (isPortalPublicRoute) return NextResponse.next()
+  // All /portal/* routes are exempt — the patient portal has its own
+  // session handling. Patients have valid Supabase sessions but no
+  // staff role, so the staff check below must never run for them.
+  const isPortalRoute = PORTAL_ROUTES.some((r) => pathname.startsWith(r))
+  if (isPortalRoute) return NextResponse.next()
 
   const isPublicRoute = PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
   const hasSession = hasSupabaseSessionCookie(request)
