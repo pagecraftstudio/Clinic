@@ -146,8 +146,9 @@ export default function PatientRegisterPage() {
         })
 
       if (patientError) {
-        // If patient already exists for this profile, non-fatal — just proceed
-        if (!patientError.message.includes('duplicate') && !patientError.message.includes('unique')) {
+        // Only swallow true duplicate-key errors (patient already exists for this profile)
+        const isDuplicate = patientError.message.includes('duplicate') || patientError.message.includes('unique')
+        if (!isDuplicate) {
           setError(patientError.message)
           return
         }
