@@ -12,9 +12,9 @@ export default async function WaitingListPage() {
     .from('waiting_list')
     .select(`
       id, preferred_date, preferred_time, type, status, chief_complaint,
-      guest_name, guest_phone, created_at,
+      guest_name, guest_phone, guest_email, created_at,
       patients ( id, full_name, phone, patient_number ),
-      doctors ( id, specialty, profiles ( display_name ) )
+      doctors ( id, specialty, clinic_id, profiles ( display_name ) )
     `)
     .eq('clinic_id', clinicId)
     .in('status', ['waiting', 'notified'])
