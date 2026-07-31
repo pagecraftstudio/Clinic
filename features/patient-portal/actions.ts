@@ -161,14 +161,14 @@ export async function joinWaitingList(raw: unknown): Promise<ActionResult<{ id: 
     return { success: false, error: 'Name and phone required for guest waiting list.' }
   }
 
-  const { data: clinic } = await admin
-    .from('clinics').select('id').eq('is_active', true).limit(1).single()
-  if (!clinic) return { success: false, error: 'No active clinic.' }
+  const { data: doctor } = await admin
+    .from('doctors').select('clinic_id').eq('id', parsed.data.doctor_id).single()
+  if (!doctor) return { success: false, error: 'Doctor not found.' }
 
   const { data, error } = await admin
     .from('waiting_list')
     .insert({
-      clinic_id:       clinic.id,
+      clinic_id:       doctor.clinic_id,
       doctor_id:       parsed.data.doctor_id,
       patient_id:      patientId,
       guest_name:      patientId ? null : parsed.data.guest_name,
@@ -184,6 +184,7 @@ export async function joinWaitingList(raw: unknown): Promise<ActionResult<{ id: 
   if (error) return { success: false, error: error.message }
   revalidatePath('/portal/appointments')
   revalidatePath('/appointments/waiting-list')
+  revalidatePath('/appointments')
   return { success: true, data: { id: data.id } }
 }
 

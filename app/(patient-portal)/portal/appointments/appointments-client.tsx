@@ -3,8 +3,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { cancelPatientAppointment } from '@/features/patient-portal/actions'
-import { Calendar, Clock, Video, MapPin, X, Loader2 } from 'lucide-react'
+import { Calendar, Clock, Video, MapPin, X, Loader2, Hourglass } from 'lucide-react'
 import { useLang } from '@/lib/i18n/context'
+
+interface WaitingEntry {
+  id: string
+  preferred_date: string
+  preferred_time: string
+  type: string
+  status: string
+  created_at: string
+  doctors: { id: string; specialty: string; profiles: { display_name: string } | null } | null
+}
 
 interface Doctor {
   id: string; specialty: string
@@ -97,8 +107,8 @@ function AppointmentCard({ appt, onCancel }: { appt: Appointment; onCancel: (id:
   )
 }
 
-export function PatientAppointmentsClient({ appointments }: { appointments: Appointment[] }) {
-  const { tr, isRtl } = useLang()
+export function PatientAppointmentsClient({ appointments, waitingList = [] }: { appointments: Appointment[]; waitingList?: WaitingEntry[] }) {
+  const { tr, isRtl, lang } = useLang()
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming')
   const [cancelling, setCancelling] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -136,6 +146,49 @@ export function PatientAppointmentsClient({ appointments }: { appointments: Appo
           {tr.past} ({past.length})
         </button>
       </div>
+
+      {waitingList.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Hourglass size={14} style={{ color: 'var(--accent)' }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              {lang === 'ar' ? 'قائمة الانتظار' : 'Waiting List'} ({waitingList.length})
+            </span>
+          </div>
+          <div className="grid gap-2">
+            {waitingList.map(entry => {
+              const docName = entry.doctors?.profiles?.display_name ?? 'Doctor'
+              const TIME_LABELS: Record<string, string> = { morning: lang === 'ar' ? 'صباح' : 'Morning', afternoon: lang === 'ar' ? 'مساء' : 'Afternoon', any: lang === 'ar' ? 'أي وقت' : 'Any time' }
+              return (
+                <div key={entry.id} className="rounded-xl p-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-semibold"
+                        style={{ background: '#FEF3C7', color: '#D97706' }}>
+                        {docName.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{docName}</div>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="flex items-center gap-1" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                            <Calendar size={10} />
+                            {new Date(entry.preferred_date).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          </span>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>·</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{TIME_LABELS[entry.preferred_time] ?? entry.preferred_time}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 99, background: '#FEF3C7', color: '#D97706', flexShrink: 0 }}>
+                      {lang === 'ar' ? 'انتظار' : 'Waiting'}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 rounded-lg" style={{ background: 'var(--danger-light)', color: 'var(--danger)', fontSize: 13 }}>
