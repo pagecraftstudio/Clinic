@@ -183,6 +183,7 @@ export async function joinWaitingList(raw: unknown): Promise<ActionResult<{ id: 
 
   if (error) return { success: false, error: error.message }
   revalidatePath('/portal/appointments')
+  revalidatePath('/appointments/waiting-list')
   return { success: true, data: { id: data.id } }
 }
 
