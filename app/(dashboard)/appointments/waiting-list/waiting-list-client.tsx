@@ -115,6 +115,10 @@ function ApprovePanel({
 
   const handleApprove = () => {
     if (!time || !date) return
+    if (!entry.patients?.id) {
+      setError('Guest must be registered as a patient before approving.')
+      return
+    }
     setError(null)
     const scheduled_at = `${date}T${time}:00`
     const conflict = isOverlapping(scheduled_at, duration, existingAppts)
@@ -127,9 +131,7 @@ function ApprovePanel({
       const result = await approveFromWaitingList({
         waiting_list_id: entry.id,
         doctor_id: doctorId,
-        patient_id: entry.patients?.id ?? null,
-        guest_name: entry.guest_name,
-        guest_phone: entry.guest_phone,
+        patient_id: entry.patients!.id,
         scheduled_at,
         duration,
         type: entry.type,
@@ -340,7 +342,7 @@ export function WaitingListClient({ entries: initial }: { entries: WaitingEntry[
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
                       <span style={{ fontSize: 14, fontWeight: 600 }}>{name}</span>
                       {!entry.patients && (
-                        <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: '#F3F4F6', color: '#6B7280' }}>Guest</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: '#FEF3C7', color: '#D97706' }}>Guest — register to approve</span>
                       )}
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium"
                         style={{

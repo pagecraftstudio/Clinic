@@ -134,11 +134,8 @@ export async function rescheduleAppointment(id: string, raw: unknown): Promise<A
 export async function approveFromWaitingList(raw: {
   waiting_list_id: string
   doctor_id: string
-  patient_id: string | null
-  guest_name: string | null
-  guest_phone: string | null
-
-  scheduled_at: string    // full ISO datetime e.g. "2025-08-01T09:30:00"
+  patient_id: string          // must be a registered patient
+  scheduled_at: string
   duration: number
   type: string
   chief_complaint: string | null
@@ -165,37 +162,24 @@ export async function approveFromWaitingList(raw: {
     return { success: false, error: `Time conflicts with an existing appointment at ${clashTime}` }
   }
 
-  // If no patient_id this is a guest — require guest fields
-  if (!raw.patient_id && !raw.guest_name) {
-    return { success: false, error: 'Guest name required.' }
-  }
-
-  // Build insert — patient_id is nullable for guests
-  const insertData: Record<string, unknown> = {
-    clinic_id:       clinicId,
-    doctor_id:       raw.doctor_id,
-    scheduled_at:    raw.scheduled_at,
-    duration:        raw.duration,
-    type:            raw.type as 'in_person' | 'online' | 'follow_up' | 'urgent' | 'routine',
-    chief_complaint: raw.chief_complaint,
-    status:          'scheduled',
-    is_online:       raw.type === 'online',
-    is_guest:        !raw.patient_id,
-    guest_name:      raw.guest_name,
-    guest_phone:     raw.guest_phone,
-
-  }
-  if (raw.patient_id) insertData.patient_id = raw.patient_id
-
   const { data: appt, error: apptErr } = await supabase
     .from('appointments')
-    .insert(insertData)
+    .insert({
+      clinic_id:       clinicId,
+      doctor_id:       raw.doctor_id,
+      patient_id:      raw.patient_id,
+      scheduled_at:    raw.scheduled_at,
+      duration:        raw.duration,
+      type:            raw.type as 'in_person' | 'online' | 'follow_up' | 'urgent' | 'routine',
+      chief_complaint: raw.chief_complaint,
+      status:          'scheduled',
+      is_online:       raw.type === 'online',
+    })
     .select('id')
     .single()
 
   if (apptErr) return { success: false, error: apptErr.message }
 
-  // Mark waiting list entry as booked
   await supabase
     .from('waiting_list')
     .update({ status: 'booked' })
