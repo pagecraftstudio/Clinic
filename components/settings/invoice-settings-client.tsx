@@ -45,13 +45,19 @@ export function InvoiceSettingsClient({ settings }: Props) {
   function onSubmit(data: any) {
     setError(null)
     setSuccess(false)
-    // Merge with existing settings
+    if (!settings?.id) {
+      setError('Settings not loaded — please refresh the page.')
+      return
+    }
+    // Merge invoice fields into existing settings so required fields pass validation
     const merged = {
       ...settings,
-      ...data,
+      invoice_prefix: data.invoice_prefix,
+      invoice_notes: data.invoice_notes,
+      invoice_footer: data.invoice_footer,
     }
     startTransition(async () => {
-      const result = await updateClinicSettings(merged)
+      const result = await updateClinicSettings(settings.id, merged)
       if (result.success) {
         setSuccess(true)
         router.refresh()

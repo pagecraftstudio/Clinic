@@ -191,7 +191,7 @@ export function ClinicSettingsClient({ settings }: Props) {
       <Section icon={Globe} title="Regional">
         <div className="grid grid-cols-2 gap-4">
           <Field label="Currency">
-            <Select defaultValue={settings?.currency ?? 'EGP'} onValueChange={(v) => setValue('currency', v)}>
+            <Select value={watch('currency') ?? 'EGP'} onValueChange={(v) => setValue('currency', v)}>
               <SelectTrigger className={inputCls}>
                 <SelectValue />
               </SelectTrigger>
@@ -203,7 +203,7 @@ export function ClinicSettingsClient({ settings }: Props) {
             </Select>
           </Field>
           <Field label="Timezone">
-            <Select defaultValue={settings?.timezone ?? 'Africa/Cairo'} onValueChange={(v) => setValue('timezone', v)}>
+            <Select value={watch('timezone') ?? 'Africa/Cairo'} onValueChange={(v) => setValue('timezone', v)}>
               <SelectTrigger className={inputCls}>
                 <SelectValue />
               </SelectTrigger>
@@ -215,7 +215,7 @@ export function ClinicSettingsClient({ settings }: Props) {
             </Select>
           </Field>
           <Field label="Date Format">
-            <Select defaultValue={settings?.date_format ?? 'DD/MM/YYYY'} onValueChange={(v) => setValue('date_format', v)}>
+            <Select value={watch('date_format') ?? 'DD/MM/YYYY'} onValueChange={(v) => setValue('date_format', v)}>
               <SelectTrigger className={inputCls}>
                 <SelectValue />
               </SelectTrigger>
@@ -227,7 +227,7 @@ export function ClinicSettingsClient({ settings }: Props) {
             </Select>
           </Field>
           <Field label="Time Format">
-            <Select defaultValue={settings?.time_format ?? '12h'} onValueChange={(v) => setValue('time_format', v as '12h' | '24h')}>
+            <Select value={watch('time_format') ?? '12h'} onValueChange={(v) => setValue('time_format', v as '12h' | '24h')}>
               <SelectTrigger className={inputCls}>
                 <SelectValue />
               </SelectTrigger>
@@ -283,8 +283,9 @@ export function ClinicSettingsClient({ settings }: Props) {
           <Field label="Primary Color">
             <div className="flex gap-2 items-center">
               <input
-                {...register('primary_color')}
                 type="color"
+                value={watch('primary_color') ?? '#0066FF'}
+                onChange={(e) => setValue('primary_color', e.target.value)}
                 className="w-10 h-10 rounded-lg border border-[var(--border)] cursor-pointer bg-transparent"
               />
               <Input {...register('primary_color')} placeholder="#0066FF" className={cn(inputCls, 'flex-1')} />

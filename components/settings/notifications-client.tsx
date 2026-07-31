@@ -274,7 +274,7 @@ function TemplateDialog({
             <div className="space-y-1">
               <Label className="text-[12px] text-[var(--text-muted)]">Channel</Label>
               <Select
-                defaultValue={template?.channel}
+                value={watch('channel') ?? ''}
                 onValueChange={(v) => setValue('channel', v as NotificationTemplateInput['channel'])}
               >
                 <SelectTrigger className={inputCls}>
@@ -291,7 +291,7 @@ function TemplateDialog({
             <div className="space-y-1">
               <Label className="text-[12px] text-[var(--text-muted)]">Event</Label>
               <Select
-                defaultValue={template?.event}
+                value={watch('event') ?? ''}
                 onValueChange={(v) => setValue('event', v)}
               >
                 <SelectTrigger className={inputCls}>
