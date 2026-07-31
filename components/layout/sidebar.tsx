@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Calendar, UserCog, Receipt,
   FlaskConical, Scan, Package, BarChart3, Sparkles,
-  Settings, LogOut, ClipboardList, Building2, X,
+  Settings, LogOut, ClipboardList, Building2, X, Clock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -26,6 +26,7 @@ function getNavGroups(t: (en: string, ar: string) => string) {
       items: [
         { href: '/patients',     icon: Users,           label: t('Patients', 'المرضى') },
         { href: '/appointments', icon: Calendar,        label: t('Appointments', 'المواعيد') },
+        { href: '/appointments/waiting-list', icon: Clock, label: t('Waiting List', 'قائمة الانتظار') },
         { href: '/doctors',      icon: UserCog,         label: t('Doctors', 'الأطباء') },
         { href: '/lab',          icon: FlaskConical,    label: t('Laboratory', 'المختبر') },
         { href: '/radiology',    icon: Scan,            label: t('Radiology', 'الأشعة') },
