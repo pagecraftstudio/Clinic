@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Users, LayoutGrid, List as ListIcon } from 'lucide-react'
+import { Plus, Users, LayoutGrid, List as ListIcon, UserX, UserCheck, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { SearchInput } from '@/components/shared/search-input'
-import { DataTable, type Column } from '@/components/shared/data-table'
+import { DataTable, type Column, type BulkAction } from '@/components/shared/data-table'
 import { PatientCard } from '@/components/patients/patient-card'
 import { PatientStatusBadge, BloodGroupBadge, GenderBadge } from '@/components/shared/status-badge'
 import { usePatients } from '@/features/patients/hooks'
+import { bulkDeactivatePatients, bulkActivatePatients, bulkDeletePatients } from '@/features/patients/actions'
+import { useSavedFilters } from '@/hooks/use-saved-filters'
 import { formatAge, formatDate, getInitials } from '@/lib/utils'
 import type { Patient, PatientFilters } from '@/types/patient'
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
 
 interface PatientsListClientProps {
   initialData: { patients: Patient[]; total: number; pageCount: number }
@@ -20,8 +24,12 @@ interface PatientsListClientProps {
 
 export function PatientsListClient({ initialData, initialSearch }: PatientsListClientProps) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [view, setView] = useState<'table' | 'grid'>('table')
-  const [filters, setFilters] = useState<PatientFilters>({ search: initialSearch, page: 1 })
+  const [filters, setFilters, clearFilters] = useSavedFilters<PatientFilters>(
+    'patients',
+    { search: initialSearch, page: 1 }
+  )
 
   const { data, isLoading } = usePatients(filters)
   const patients = data?.patients ?? initialData.patients
@@ -56,6 +64,44 @@ export function PatientsListClient({ initialData, initialSearch }: PatientsListC
     },
   ]
 
+  const bulkActions: BulkAction[] = [
+    {
+      label: 'Deactivate',
+      icon: UserX,
+      onClick: (ids) => {
+        startTransition(async () => {
+          const result = await bulkDeactivatePatients(ids)
+          if (result.success) toast.success(`${ids.length} patients deactivated`)
+          else toast.error(result.error)
+        })
+      },
+    },
+    {
+      label: 'Activate',
+      icon: UserCheck,
+      onClick: (ids) => {
+        startTransition(async () => {
+          const result = await bulkActivatePatients(ids)
+          if (result.success) toast.success(`${ids.length} patients activated`)
+          else toast.error(result.error)
+        })
+      },
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      variant: 'destructive',
+      onClick: (ids) => {
+        if (!confirm(`Delete ${ids.length} patients? This cannot be undone.`)) return
+        startTransition(async () => {
+          const result = await bulkDeletePatients(ids)
+          if (result.success) toast.success(`${ids.length} patients deleted`)
+          else toast.error(result.error)
+        })
+      },
+    },
+  ]
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -65,6 +111,16 @@ export function PatientsListClient({ initialData, initialSearch }: PatientsListC
           placeholder="Search by name, phone, national ID…"
         />
         <div className="flex items-center gap-2">
+          {/* Saved filter badge */}
+          {(filters.search || filters.gender || filters.bloodGroup) && (
+            <button
+              onClick={clearFilters}
+              className="text-[12px] px-2.5 py-1 rounded-lg transition-colors hover:bg-[var(--bg-subtle)]"
+              style={{ color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+            >
+              Clear filters
+            </button>
+          )}
           <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
             <button
               onClick={() => setView('table')}
@@ -92,7 +148,7 @@ export function PatientsListClient({ initialData, initialSearch }: PatientsListC
           columns={columns}
           data={patients}
           rowKey={(p) => p.id}
-          isLoading={isLoading}
+          isLoading={isLoading || isPending}
           onRowClick={(p) => router.push(`/patients/${p.id}`)}
           sortBy={filters.sortBy}
           sortDir={filters.sortDir}
@@ -101,6 +157,7 @@ export function PatientsListClient({ initialData, initialSearch }: PatientsListC
             sortBy: key as PatientFilters['sortBy'],
             sortDir: f.sortBy === key && f.sortDir === 'asc' ? 'desc' : 'asc',
           }))}
+          bulkActions={bulkActions}
           emptyIcon={Users}
           emptyTitle="No patients found"
           emptyDescription="Try a different search term or register a new patient."

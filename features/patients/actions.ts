@@ -93,3 +93,39 @@ export async function deletePatient(id: string): Promise<ActionResult> {
   revalidatePath('/patients')
   return { success: true }
 }
+
+export async function bulkDeactivatePatients(ids: string[]): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase
+    .from('patients')
+    .update({ is_active: false })
+    .in('id', ids)
+    .eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/patients')
+  return { success: true }
+}
+
+export async function bulkActivatePatients(ids: string[]): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase
+    .from('patients')
+    .update({ is_active: true })
+    .in('id', ids)
+    .eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/patients')
+  return { success: true }
+}
+
+export async function bulkDeletePatients(ids: string[]): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase
+    .from('patients')
+    .update({ deleted_at: new Date().toISOString(), is_active: false })
+    .in('id', ids)
+    .eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/patients')
+  return { success: true }
+}
