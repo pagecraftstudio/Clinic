@@ -137,7 +137,7 @@ export async function approveFromWaitingList(raw: {
   patient_id: string | null
   guest_name: string | null
   guest_phone: string | null
-  guest_email: string | null
+
   scheduled_at: string    // full ISO datetime e.g. "2025-08-01T09:30:00"
   duration: number
   type: string
@@ -183,7 +183,7 @@ export async function approveFromWaitingList(raw: {
     is_guest:        !raw.patient_id,
     guest_name:      raw.guest_name,
     guest_phone:     raw.guest_phone,
-    guest_email:     raw.guest_email,
+
   }
   if (raw.patient_id) insertData.patient_id = raw.patient_id
 

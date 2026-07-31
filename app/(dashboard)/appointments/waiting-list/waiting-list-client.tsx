@@ -14,7 +14,6 @@ interface WaitingEntry {
   chief_complaint: string | null
   guest_name: string | null
   guest_phone: string | null
-  guest_email: string | null
   created_at: string
   patients: { id: string; full_name: string; phone: string; patient_number: string } | null
   doctors: { id: string; specialty: string; clinic_id: string; profiles: { display_name: string } | null } | null
@@ -131,7 +130,6 @@ function ApprovePanel({
         patient_id: entry.patients?.id ?? null,
         guest_name: entry.guest_name,
         guest_phone: entry.guest_phone,
-        guest_email: entry.guest_email ?? null,
         scheduled_at,
         duration,
         type: entry.type,
