@@ -1,11 +1,10 @@
-// Append these exports to the existing features/patient-portal/actions.ts
-
 'use server'
 
 import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import type { ActionResult } from './actions'
+import type { ActionResult } from '@/features/appointments/actions'
+export type { ActionResult }
 
 // ── Guest booking ─────────────────────────────────────────────────────────────
 const guestBookingSchema = z.object({
@@ -269,4 +268,109 @@ export async function approveAppointment(
   revalidatePath('/appointments')
   revalidatePath('/appointments/pending')
   return { success: true }
+}
+
+// ── Patient self-registration ─────────────────────────────────────────────────
+const registerSchema = z.object({
+  email:       z.string().email(),
+  password:    z.string().min(8),
+  firstName:   z.string().min(1),
+  lastName:    z.string().min(1),
+  phone:       z.string().min(7),
+  dateOfBirth: z.string().optional(),
+  gender:      z.enum(['male', 'female', 'other']).optional(),
+})
+
+export async function registerPatient(raw: unknown): Promise<ActionResult<{ id: string }>> {
+  const parsed = registerSchema.safeParse(raw)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
+
+  const admin = await createAdminClient()
+  const { email, password, firstName, lastName, phone, dateOfBirth, gender } = parsed.data
+
+  const { data: authData, error: authError } = await admin.auth.admin.createUser({
+    email, password, email_confirm: true,
+    user_metadata: { first_name: firstName, last_name: lastName, role: 'patient' },
+  })
+  if (authError) return { success: false, error: authError.message }
+
+  const userId = authData.user.id
+
+  // Upsert profile (handle_new_user trigger may have already created it)
+  await admin.from('profiles').upsert({
+    id: userId, first_name: firstName, last_name: lastName,
+    display_name: `${firstName} ${lastName}`, role: 'patient',
+  }, { onConflict: 'id' })
+
+  const { data: clinic } = await admin.from('clinics').select('id').eq('is_active', true).limit(1).single()
+  if (!clinic) return { success: false, error: 'No active clinic.' }
+
+  const { data, error } = await admin.from('patients').insert({
+    clinic_id: clinic.id, profile_id: userId,
+    full_name: `${firstName} ${lastName}`, phone,
+    date_of_birth: dateOfBirth ?? null,
+    gender: gender ?? null,
+    is_active: true,
+  }).select('id').single()
+
+  if (error) return { success: false, error: error.message }
+  return { success: true, data: { id: data.id } }
+}
+
+// ── Cancel patient's own appointment ─────────────────────────────────────────
+export async function cancelPatientAppointment(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .eq('patient_id', supabase.auth.getUser().then ? undefined : undefined) // RLS enforces ownership
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/portal/appointments')
+  return { success: true }
+}
+
+// ── Authenticated patient booking ─────────────────────────────────────────────
+const authBookingSchema = z.object({
+  doctor_id:       z.string().uuid(),
+  scheduled_at:    z.string().min(1),
+  duration:        z.number().int().min(15).max(120).default(30),
+  type:            z.enum(['in_person', 'online', 'home_visit']).default('in_person'),
+  chief_complaint: z.string().max(500).optional(),
+})
+
+export async function bookAppointment(
+  raw: unknown
+): Promise<ActionResult<{ id: string; appointment_number: string }>> {
+  const parsed = authBookingSchema.safeParse(raw)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid data' }
+
+  const admin = await createAdminClient()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'Not authenticated.' }
+
+  const { data: patient } = await admin.from('patients').select('id, clinic_id')
+    .eq('profile_id', user.id).is('deleted_at', null).limit(1).single()
+  if (!patient) return { success: false, error: 'Patient record not found.' }
+
+  const { data: clinic } = await admin.from('clinics')
+    .select('id, booking_approval_required, appointment_duration')
+    .eq('id', patient.clinic_id).single()
+  if (!clinic) return { success: false, error: 'Clinic not found.' }
+
+  const { doctor_id, scheduled_at, type, chief_complaint } = parsed.data
+  const duration = parsed.data.duration ?? clinic.appointment_duration ?? 30
+  const endAt = new Date(new Date(scheduled_at).getTime() + duration * 60_000)
+  const approval_status = clinic.booking_approval_required ? 'pending' : null
+
+  const { data, error } = await admin.from('appointments').insert({
+    clinic_id: clinic.id, doctor_id, patient_id: patient.id,
+    scheduled_at, end_at: endAt.toISOString(), duration, type,
+    chief_complaint: chief_complaint ?? null,
+    status: 'scheduled', approval_status,
+  }).select('id, appointment_number').single()
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/portal/appointments')
+  return { success: true, data: { id: data.id, appointment_number: data.appointment_number } }
 }

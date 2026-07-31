@@ -129,3 +129,21 @@ export async function bulkDeletePatients(ids: string[]): Promise<ActionResult> {
   revalidatePath('/patients')
   return { success: true }
 }
+
+export async function deactivatePatient(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('patients')
+    .update({ is_active: false }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/patients'); revalidatePath(`/patients/${id}`)
+  return { success: true }
+}
+
+export async function reactivatePatient(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('patients')
+    .update({ is_active: true }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/patients'); revalidatePath(`/patients/${id}`)
+  return { success: true }
+}

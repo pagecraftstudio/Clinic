@@ -64,3 +64,68 @@ export async function cancelAppointment(id: string, reason?: string): Promise<Ac
   revalidatePath('/reception')
   return { success: true }
 }
+
+export async function confirmAppointment(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'confirmed' }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function checkInAppointment(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'checked_in' }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function startAppointment(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'in_progress' }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function completeAppointment(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'completed' }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function markNoShow(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ status: 'no_show' }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function deleteAppointment(id: string): Promise<ActionResult> {
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ deleted_at: new Date().toISOString() }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath('/reception')
+  return { success: true }
+}
+
+export async function rescheduleAppointment(id: string, raw: unknown): Promise<ActionResult> {
+  const parsed = appointmentSchema.partial().safeParse(raw)
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0]?.message }
+  const [supabase, clinicId] = await Promise.all([createClient(), requireActiveClinicId()])
+  const { error } = await supabase.from('appointments')
+    .update({ ...parsed.data, status: 'rescheduled', rescheduled_from: id }).eq('id', id).eq('clinic_id', clinicId)
+  if (error) return { success: false, error: error.message }
+  revalidatePath('/appointments'); revalidatePath(`/appointments/${id}`); revalidatePath('/reception')
+  return { success: true }
+}

@@ -1,8 +1,53 @@
-// Append these exports to the existing features/patient-portal/queries.ts
-// DO NOT replace the file — add below getPortalClinicSettings
-
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import type { DoctorProfile, TimeSlot, BookingSettings } from '@/types/booking'
+
+// ── Clinic settings for portal ────────────────────────────────────────────────
+export async function getPortalClinicSettings() {
+  const admin = await createAdminClient()
+  const { data } = await admin.from('clinics')
+    .select('id, name, name_ar, logo_url, phone, email, booking_approval_required, guest_booking_enabled, ratings_enabled, cancellation_hours, reschedule_hours, booking_advance_days, appointment_duration')
+    .eq('is_active', true).limit(1).single()
+  return data
+}
+
+// ── Current authenticated patient ────────────────────────────────────────────
+export async function getPortalPatient() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const admin = await createAdminClient()
+  const { data } = await admin.from('patients').select('*')
+    .eq('profile_id', user.id).is('deleted_at', null).limit(1).single()
+  return data ?? null
+}
+
+// ── Patient appointments ──────────────────────────────────────────────────────
+export async function getPatientAppointments(patientId: string) {
+  const admin = await createAdminClient()
+  const { data } = await admin.from('appointments')
+    .select('id, scheduled_at, end_at, status, type, chief_complaint, approval_status, doctors ( id, specialty, profiles ( display_name ) )')
+    .eq('patient_id', patientId)
+    .is('deleted_at', null)
+    .order('scheduled_at', { ascending: false })
+    .limit(50)
+  return data ?? []
+}
+
+// ── Patient invoices ──────────────────────────────────────────────────────────
+export async function getPatientInvoices(patientId: string) {
+  const admin = await createAdminClient()
+  const { data } = await admin.from('invoices')
+    .select('id, invoice_number, total_amount, paid_amount, status, created_at')
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  return data ?? []
+}
+
+// ── Doctors list for portal ───────────────────────────────────────────────────
+export async function getPortalDoctors() {
+  return getPortalDoctorsWithRatings()
+}
 
 // ── Doctors with ratings ──────────────────────────────────────────────────────
 export async function getPortalDoctorsWithRatings(): Promise<DoctorProfile[]> {
