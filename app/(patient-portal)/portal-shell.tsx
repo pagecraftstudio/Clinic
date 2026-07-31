@@ -5,26 +5,31 @@ import Link from 'next/link'
 import { Activity, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { useLang } from '@/lib/i18n/context'
 
 interface Props {
   children: ReactNode
   clinicName?: string
+  clinicNameAr?: string
   logoUrl?: string | null
   primaryColor?: string | null
 }
 
-export function PortalShell({ children, clinicName, logoUrl, primaryColor }: Props) {
+export function PortalShell({ children, clinicName, clinicNameAr, logoUrl, primaryColor }: Props) {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { lang, setLang, tr, isRtl } = useLang()
+
   useEffect(() => setMounted(true), [])
 
-  // Apply primary_color from clinic settings as CSS variable
   useEffect(() => {
     if (primaryColor) {
       document.documentElement.style.setProperty('--accent', primaryColor)
       document.documentElement.style.setProperty('--accent-hover', primaryColor)
     }
   }, [primaryColor])
+
+  const displayName = isRtl ? (clinicNameAr || clinicName) : clinicName
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
@@ -45,20 +50,39 @@ export function PortalShell({ children, clinicName, logoUrl, primaryColor }: Pro
                 <Activity size={14} color="white" />
               </div>
             )}
-            <span style={{ fontSize: 15 }}>{clinicName ?? 'Patient Portal'}</span>
+            <span style={{ fontSize: 15 }}>{displayName ?? tr.patientPortal}</span>
           </Link>
 
           {/* Nav */}
           <nav className="flex items-center gap-1">
             <Link href="/portal" className="px-3 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--bg-subtle)]" style={{ color: 'var(--text-secondary)' }}>
-              Home
+              {tr.home}
             </Link>
             <Link href="/portal/appointments" className="px-3 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--bg-subtle)]" style={{ color: 'var(--text-secondary)' }}>
-              Appointments
+              {tr.appointments}
             </Link>
             <Link href="/portal/bills" className="px-3 py-1.5 rounded-md text-sm transition-colors hover:bg-[var(--bg-subtle)]" style={{ color: 'var(--text-secondary)' }}>
-              Bills
+              {tr.bills}
             </Link>
+
+            {/* Language switcher */}
+            {mounted && (
+              <button
+                onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+                className="ml-1 px-2.5 h-8 rounded-md flex items-center justify-center transition-colors hover:bg-[var(--bg-subtle)]"
+                style={{
+                  color: 'var(--text-muted)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.03em',
+                  border: '1px solid var(--border)',
+                  minWidth: 36,
+                }}
+                title={lang === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+              >
+                {lang === 'ar' ? 'EN' : 'ع'}
+              </button>
+            )}
 
             {/* Dark mode toggle */}
             {mounted && (
