@@ -30,7 +30,7 @@ export function MaintenanceBanner({
         const s = SEVERITY_STYLE[a.severity]
         const Icon = s.icon
         return (
-          <div key={a.id} className={`flex items-center gap-2 px-4 py-2 text-[13px] ${s.bg} ${s.text} border-b border-white/[0.06]`}>
+          <div key={a.id} className={`flex items-center gap-2 px-4 py-2 text-[13px] ${s.bg} ${s.text} border-b border-[var(--border)]`}>
             <Icon size={14} className="flex-shrink-0" />
             <span className="font-medium">{a.title}:</span>
             <span>{a.message}</span>

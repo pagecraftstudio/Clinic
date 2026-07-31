@@ -94,7 +94,7 @@ export function AdminClinicsClient({ clinics }: { clinics: AdminClinicRow[] }) {
             </div>
 
             {notesOpenId === c.id && (
-              <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+              <div className="space-y-2 pt-2 border-t border-[var(--border)]">
                 <Textarea
                   value={notesDraft}
                   onChange={(e) => setNotesDraft(e.target.value)}

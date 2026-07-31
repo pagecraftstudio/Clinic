@@ -85,7 +85,10 @@ export function Sidebar({ open, onClose, isSuperAdmin }: SidebarProps) {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-white/[0.06] flex-shrink-0">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-blue-600">
+        <div
+          className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0 shadow-[0_2px_10px_-2px_rgba(20,184,166,0.55)]"
+          style={{ background: 'var(--accent-gradient)' }}
+        >
           <Building2 size={16} color="white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -123,19 +126,20 @@ export function Sidebar({ open, onClose, isSuperAdmin }: SidebarProps) {
                     {active && (
                       <motion.div
                         layoutId="sidebar-pill"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-blue-500 rounded-r-full"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                        style={{ background: 'var(--sidebar-accent, #1FBFB0)', boxShadow: '0 0 8px 1px rgba(31,191,176,0.6)' }}
                         transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                       />
                     )}
                     <div
                       className={cn(
-                        'flex items-center gap-3 px-3 py-[7px] rounded-md text-[13px] font-medium transition-colors duration-100',
+                        'flex items-center gap-3 px-3 py-[7px] rounded-[10px] text-[13px] font-medium transition-all duration-150',
                         active
-                          ? 'text-white bg-white/[0.08]'
+                          ? 'text-white bg-white/[0.09] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
                           : 'text-[#A1A8B8] hover:text-white hover:bg-white/[0.05]'
                       )}
                     >
-                      <Icon size={16} className="flex-shrink-0" />
+                      <Icon size={16} className={cn('flex-shrink-0', active && 'text-[#2DD4BF]')} />
                       {label}
                     </div>
                   </Link>
@@ -151,14 +155,14 @@ export function Sidebar({ open, onClose, isSuperAdmin }: SidebarProps) {
         <Link
           href="/settings"
           onClick={onClose}
-          className="flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-[10px] text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors"
         >
           <Settings size={16} />
           {t('Settings', 'الإعدادات')}
         </Link>
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors text-left"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-[10px] text-[13px] font-medium text-[#A1A8B8] hover:text-white hover:bg-white/[0.05] transition-colors text-left"
         >
           <LogOut size={16} />
           {t('Sign out', 'تسجيل الخروج')}

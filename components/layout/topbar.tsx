@@ -61,8 +61,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 md:left-[240px] z-30 flex items-center justify-between h-16 px-4 md:px-6 border-b"
-        style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
+        className="glass-panel fixed top-0 left-0 right-0 md:left-[240px] z-30 flex items-center justify-between h-16 px-4 md:px-6"
       >
         <div className="flex items-center gap-3">
           <button
@@ -83,13 +82,13 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
           {/* Command palette trigger */}
           <button
             onClick={() => setPaletteOpen(true)}
-            className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg text-[13px] transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] transition-all duration-150 hover:shadow-[var(--shadow-sm)]"
             style={{ background: 'var(--bg-subtle)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
           >
             <Search size={14} />
             <span className="hidden sm:inline">{t('Search or jump to…', 'ابحث أو انتقل…')}</span>
             <kbd
-              className="hidden sm:inline text-[11px] px-1.5 py-0.5 rounded"
+              className="hidden sm:inline text-[11px] px-1.5 py-0.5 rounded-md"
               style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}
             >
               ⌘K
@@ -124,15 +123,18 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
           >
             <Bell size={16} />
             {!!unreadCount && unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+              <span
+                className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"
+                style={{ boxShadow: '0 0 0 2px var(--bg-surface)' }}
+              />
             )}
           </button>
 
           {/* Avatar */}
           <button
             onClick={() => router.push('/settings')}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold text-white flex-shrink-0"
-            style={{ background: 'var(--accent)' }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-semibold text-white flex-shrink-0 shadow-sm"
+            style={{ background: 'var(--accent-gradient)' }}
           >
             {profile?.first_name?.[0]?.toUpperCase() ?? 'U'}
           </button>

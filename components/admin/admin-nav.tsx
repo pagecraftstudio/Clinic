@@ -25,7 +25,7 @@ export function AdminNav() {
             href={tab.href}
             className={cn(
               'px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap',
-              active ? 'border-blue-500' : 'border-transparent hover:border-[var(--border-strong)]'
+              active ? 'border-[var(--accent)]' : 'border-transparent hover:border-[var(--border-strong)]'
             )}
             style={{ color: active ? 'var(--text-primary)' : 'var(--text-muted)' }}
           >

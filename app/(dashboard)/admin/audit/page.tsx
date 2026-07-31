@@ -9,7 +9,7 @@ export default async function AdminAuditPage() {
 
   return (
     <Card>
-      <CardContent className="p-0 divide-y divide-white/[0.06]">
+      <CardContent className="p-0 divide-y divide-[var(--border)]">
         {logs.map((log: any) => (
           <div key={log.id} className="flex items-center justify-between px-6 py-3 text-sm">
             <div>
