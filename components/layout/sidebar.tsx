@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Calendar, UserCog, Receipt,
   FlaskConical, Scan, Package, BarChart3, Sparkles,
-  Settings, LogOut, ClipboardList, Building2, X, Clock,
+  Settings, LogOut, ClipboardList, Building2, X, Clock, ShieldCheck,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -52,13 +52,22 @@ function getNavGroups(t: (en: string, ar: string) => string) {
 interface SidebarProps {
   open?: boolean
   onClose?: () => void
+  isSuperAdmin?: boolean
 }
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar({ open, onClose, isSuperAdmin }: SidebarProps) {
   const pathname = usePathname()
   const router   = useRouter()
   const { t } = useLang()
   const NAV_GROUPS = getNavGroups(t)
+  if (isSuperAdmin) {
+    NAV_GROUPS.push({
+      label: t('Platform', 'المنصة'),
+      items: [
+        { href: '/admin', icon: ShieldCheck, label: t('Super Admin', 'إدارة المنصة') },
+      ],
+    })
+  }
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
