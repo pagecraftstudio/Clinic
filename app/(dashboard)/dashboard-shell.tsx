@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { MaintenanceBanner } from '@/components/shared/maintenance-banner'
@@ -11,6 +11,7 @@ interface DashboardShellProps {
   activeClinicId: string
   activeClinicName: string
   activeClinicLogo: string | null
+  activeClinicPrimaryColor?: string | null
   isSuperAdmin?: boolean
   maintenanceMode?: MaintenanceModeValue | null
   announcements?: SystemAnnouncement[]
@@ -18,9 +19,16 @@ interface DashboardShellProps {
 
 export function DashboardShell({
   children, activeClinicId, activeClinicName, activeClinicLogo,
-  isSuperAdmin, maintenanceMode, announcements,
+  activeClinicPrimaryColor, isSuperAdmin, maintenanceMode, announcements,
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (activeClinicPrimaryColor) {
+      document.documentElement.style.setProperty('--accent', activeClinicPrimaryColor)
+      document.documentElement.style.setProperty('--accent-hover', activeClinicPrimaryColor)
+    }
+  }, [activeClinicPrimaryColor])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

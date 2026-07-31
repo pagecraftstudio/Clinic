@@ -39,6 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       activeClinicId={clinic?.id ?? ''}
       activeClinicName={clinic?.name ?? 'Platform Admin'}
       activeClinicLogo={clinic?.logo_url ?? null}
+      activeClinicPrimaryColor={clinic?.primary_color ?? null}
       isSuperAdmin={isSuperAdmin}
       maintenanceMode={maintenance.enabled ? maintenance : null}
       announcements={activeAnnouncements}
